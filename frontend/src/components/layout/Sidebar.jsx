@@ -1,17 +1,14 @@
 import { Link } from "react-router-dom";
 
 const menu = [
-  "Dashboard",
-  "AI Chat",
-  "SQL Generator",
-  "PDF Analyzer",
-  "Excel Analyzer",
-  "Analytics",
-  "Forecasting",
-  "Reports",
-  "Workflow",
-  "Admin",
-  "Settings",
+  { name: "Dashboard", path: "/" },
+  { name: "AI Chat", path: "/chat" },
+  { name: "SQL Generator", path: "/sql" },
+  { name: "PDF Analyzer", path: "/pdf" },
+  { name: "Excel Analyzer", path: "/excel" },
+  { name: "Analytics", path: "/analytics" },
+  { name: "Reports", path: "/reports" },
+  { name: "Settings", path: "/settings" },
 ];
 
 export default function Sidebar() {
@@ -25,15 +22,13 @@ export default function Sidebar() {
       <nav className="p-5">
 
         {menu.map((item) => (
-
           <Link
-            key={item}
-            to="/"
+            key={item.name}
+            to={item.path}
             className="block rounded-lg px-4 py-3 hover:bg-slate-700 mb-2"
           >
-            {item}
+            {item.name}
           </Link>
-
         ))}
 
       </nav>

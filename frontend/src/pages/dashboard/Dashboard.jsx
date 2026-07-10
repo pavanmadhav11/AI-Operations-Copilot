@@ -1,7 +1,35 @@
+import { useEffect, useState } from "react";
+
 import WelcomeBanner from "../../components/dashboard/WelcomeBanner";
 import StatCard from "../../components/dashboard/StatCard";
+import ActivityChart from "../../components/dashboard/ActivityChart";
+import RecentActivity from "../../components/dashboard/RecentActivity";
+import RecentDocuments from "../../components/dashboard/RecentDocuments";
+
+import {
+  getDashboardStats,
+} from "../../services/dashboardService";
 
 export default function Dashboard() {
+  const [stats, setStats] = useState(null);
+
+  useEffect(() => {
+    async function loadDashboard() {
+      const data = await getDashboardStats();
+      setStats(data);
+    }
+
+    loadDashboard();
+  }, []);
+
+  if (!stats) {
+    return (
+      <div className="text-center mt-20 text-xl">
+        Loading Dashboard...
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
 
@@ -11,46 +39,45 @@ export default function Dashboard() {
 
         <StatCard
           title="Users"
-          value="1,284"
+          value={stats.users}
           icon="👥"
           color="text-blue-600"
         />
 
         <StatCard
           title="Documents"
-          value="8,450"
+          value={stats.documents}
           icon="📄"
           color="text-green-600"
         />
 
         <StatCard
           title="AI Requests"
-          value="42,813"
+          value={stats.aiRequests}
           icon="🤖"
           color="text-purple-600"
         />
 
         <StatCard
           title="Storage"
-          value="72 GB"
+          value={stats.storage}
           icon="💾"
           color="text-red-600"
         />
 
       </div>
 
-      <div className="bg-white rounded-xl shadow-md p-6">
+      <div className="grid grid-cols-3 gap-6">
 
-        <h2 className="text-xl font-bold mb-4">
-          Dashboard Overview
-        </h2>
+        <div className="col-span-2">
+          <ActivityChart />
+        </div>
 
-        <p className="text-gray-600">
-          This dashboard will display charts, AI analytics, recent
-          activities, uploaded documents, and operational insights.
-        </p>
+        <RecentActivity />
 
       </div>
+
+      <RecentDocuments />
 
     </div>
   );

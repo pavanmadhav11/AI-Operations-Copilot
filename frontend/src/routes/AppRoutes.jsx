@@ -7,6 +7,7 @@ import Register from "../pages/auth/Register";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 import NotFound from "../pages/NotFound";
 import ProtectedRoute from "./ProtectedRoute";
+import Chat from "../pages/chat/Chat";
 
 export const router = createBrowserRouter([
   {
@@ -39,4 +40,8 @@ export const router = createBrowserRouter([
     path: "*",
     element: <NotFound />,
   },
+  {
+    path: "chat",
+    element: <Chat />,
+  }
 ]);
