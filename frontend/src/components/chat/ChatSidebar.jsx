@@ -6,6 +6,8 @@ export default function ChatSidebar() {
     createChat,
     activeChatId,
     setActiveChat,
+    deleteChat,
+    renameChat,
   } = useChatStore();
 
   return (
@@ -24,14 +26,47 @@ export default function ChatSidebar() {
 
           <div
             key={chat.id}
-            onClick={() => setActiveChat(chat.id)}
-            className={`cursor-pointer rounded-lg p-3 mb-2 transition ${
+            className={`rounded-lg mb-2 p-3 ${
               activeChatId === chat.id
                 ? "bg-blue-600"
-                : "hover:bg-slate-800"
+                : "bg-slate-800"
             }`}
           >
-            {chat.title}
+
+            <div
+              onClick={() => setActiveChat(chat.id)}
+              className="cursor-pointer"
+            >
+              {chat.title}
+            </div>
+
+            <div className="flex gap-3 mt-3">
+
+              <button
+                onClick={() => {
+                  const title = prompt(
+                    "Rename Chat",
+                    chat.title
+                  );
+
+                  if (title) {
+                    renameChat(chat.id, title);
+                  }
+                }}
+                className="text-xs text-yellow-300"
+              >
+                Rename
+              </button>
+
+              <button
+                onClick={() => deleteChat(chat.id)}
+                className="text-xs text-red-300"
+              >
+                Delete
+              </button>
+
+            </div>
+
           </div>
 
         ))}
