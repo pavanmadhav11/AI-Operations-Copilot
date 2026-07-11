@@ -1,35 +1,15 @@
-export async function sendMessage(message) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        id: Date.now(),
-        role: "assistant",
-        content: `# AI Response
+import api from "../api/api";
 
-You asked:
-
-> ${message}
-
----
-
-### Analysis
-
-This is a **mock response**.
-
-Later this response will come from:
-
-- FastAPI
-- LangGraph
-- OpenAI
-- Company Database
-
-\`\`\`python
-print("Hello AI")
-\`\`\`
-
-The markdown above is rendered by ReactMarkdown.
-`,
-      });
-    }, 1500);
+export const sendMessage = async (sessionId, message) => {
+  const response = await api.post("/chat", {
+    session_id: sessionId,
+    message,
   });
-}
+
+  return response.data;
+};
+
+export const getHistory = async (sessionId) => {
+  const response = await api.get(`/chat/${sessionId}/history`);
+  return response.data;
+};

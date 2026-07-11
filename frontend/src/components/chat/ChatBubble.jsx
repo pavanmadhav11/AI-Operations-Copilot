@@ -5,8 +5,10 @@ import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 export default function ChatBubble({ message }) {
   const isUser = message.role === "user";
 
+  const text = message.message || message.content || "";
+
   const copyMessage = () => {
-    navigator.clipboard.writeText(message.content);
+    navigator.clipboard.writeText(text);
   };
 
   return (
@@ -50,7 +52,7 @@ export default function ChatBubble({ message }) {
             },
           }}
         >
-          {message.content}
+          {text}
         </ReactMarkdown>
 
         {!isUser && (

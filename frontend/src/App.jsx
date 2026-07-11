@@ -5,13 +5,13 @@ import { router } from "./routes/AppRoutes";
 import useAuthStore from "./store/authStore";
 
 function App() {
-  const { loadUser, token } = useAuthStore();
+  const { token, loadUser } = useAuthStore();
 
   useEffect(() => {
     if (token) {
       loadUser();
     }
-  }, []);
+  }, [token]);
 
   return <RouterProvider router={router} />;
 }

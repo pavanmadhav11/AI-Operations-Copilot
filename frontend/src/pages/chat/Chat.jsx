@@ -1,39 +1,71 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import ChatSidebar from "../../components/chat/ChatSidebar";
 import ChatWindow from "../../components/chat/ChatWindow";
 import ChatInput from "../../components/chat/ChatInput";
 
-import { sendMessage } from "../../services/chatService";
+import {
+  sendMessage,
+  getHistory,
+} from "../../services/chatService";
+
 import useChatStore from "../../store/chatStore";
+import useSessionStore from "../../store/sessionStore";
 
 export default function Chat() {
   const [loading, setLoading] = useState(false);
 
   const {
-    chats,
-    activeChatId,
+    messages,
+    setMessages,
     addMessage,
   } = useChatStore();
 
-  const activeChat = chats.find(
-    (chat) => chat.id === activeChatId
-  );
+  const { currentSession } = useSessionStore();
+
+  useEffect(() => {
+    if (currentSession) {
+      loadHistory();
+    }
+  }, [currentSession]);
+
+  async function loadHistory() {
+    try {
+      const history = await getHistory(currentSession.id);
+      setMessages(history);
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   async function handleSend(text) {
+    if (!currentSession) return;
+
     const userMessage = {
       id: Date.now(),
       role: "user",
-      content: text,
+      message: text,
     };
 
-    addMessage(activeChatId, userMessage);
+    addMessage(userMessage);
 
     setLoading(true);
 
-    const aiMessage = await sendMessage(text);
+    try {
+      const response = await sendMessage(
+        currentSession.id,
+        text
+      );
 
-    addMessage(activeChatId, aiMessage);
+      addMessage({
+        id: Date.now() + 1,
+        role: "assistant",
+        message: response.response,
+      });
+
+    } catch (err) {
+      console.error(err);
+    }
 
     setLoading(false);
   }
@@ -46,11 +78,13 @@ export default function Chat() {
       <div className="flex flex-col flex-1">
 
         <ChatWindow
-          messages={activeChat.messages}
+          messages={messages}
           loading={loading}
         />
 
-        <ChatInput onSend={handleSend} />
+        <ChatInput
+          onSend={handleSend}
+        />
 
       </div>
 
