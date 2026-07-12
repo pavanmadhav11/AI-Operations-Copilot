@@ -31,7 +31,7 @@ class UploadedFile(Base):
     session_id = Column(
         Integer,
         ForeignKey("chat_sessions.id"),
-        nullable=False,
+        nullable=True,
     )
 
     filename = Column(
@@ -49,6 +49,9 @@ class UploadedFile(Base):
     )
 
     extracted_text = Column(Text)
+
+    summary = Column(Text)
+    workbook_json = Column(Text)
 
     uploaded_at = Column(
         DateTime(timezone=True),

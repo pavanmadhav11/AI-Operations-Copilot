@@ -14,6 +14,11 @@ import SQLGenerator from "../pages/sql/SQLGenerator";
 import NotFound from "../pages/NotFound";
 
 import ProtectedRoute from "./ProtectedRoute";
+import Reports from "../pages/reports/Reports";
+import Settings from "../pages/settings/Settings";
+import PDFAnalyzer from "../pages/pdf/PDFAnalyzer";
+import ExcelAnalyzer from "../pages/excel/ExcelAnalyzer";
+import Analytics from "../pages/analytics/Analytics";
 
 export const router = createBrowserRouter([
   // -------------------------
@@ -62,27 +67,25 @@ export const router = createBrowserRouter([
       // Future Modules
       {
         path: "pdf",
-        element: <h1 className="text-3xl p-10">PDF Analyzer</h1>,
+        element: <PDFAnalyzer />,
       },
 
       {
         path: "excel",
-        element: <h1 className="text-3xl p-10">Excel Analyzer</h1>,
-      },
-
-      {
-        path: "analytics",
-        element: <h1 className="text-3xl p-10">Analytics</h1>,
-      },
-
-      {
-        path: "reports",
-        element: <h1 className="text-3xl p-10">Reports</h1>,
+        element: <ExcelAnalyzer />,
       },
 
       {
         path: "settings",
-        element: <h1 className="text-3xl p-10">Settings</h1>,
+        element: <Settings />,
+      },
+      {
+        path: "analytics",
+        element: <Analytics />,
+      },
+      {
+        path: "reports",
+        element: <Reports />,
       },
     ],
   },

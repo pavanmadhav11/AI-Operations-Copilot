@@ -28,8 +28,10 @@ export default function FileUpload() {
 
       e.target.value = "";
     } catch (err) {
-      console.error(err);
-      alert("File upload failed.");
+      toast.error(
+        err.response?.data?.detail ||
+        "Something went wrong."
+      );
     }
   }
 

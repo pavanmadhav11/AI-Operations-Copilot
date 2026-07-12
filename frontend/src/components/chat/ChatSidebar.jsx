@@ -55,7 +55,10 @@ export default function ChatSidebar() {
         setCurrentSession(null);
       }
     } catch (err) {
-      console.error(err);
+      toast.error(
+        err.response?.data?.detail ||
+        "Something went wrong."
+      );
     }
   }
 
@@ -65,7 +68,10 @@ export default function ChatSidebar() {
 
       setFiles(data);
     } catch (err) {
-      console.error(err);
+      toast.error(
+        err.response?.data?.detail ||
+        "Something went wrong."
+      );
     }
   }
 
@@ -77,7 +83,10 @@ export default function ChatSidebar() {
 
       setCurrentSession(session);
     } catch (err) {
-      console.error(err);
+      toast.error(
+        err.response?.data?.detail ||
+        "Something went wrong."
+      );
     }
   }
 
@@ -87,7 +96,10 @@ export default function ChatSidebar() {
 
       await loadSessions();
     } catch (err) {
-      console.error(err);
+      toast.error(
+        err.response?.data?.detail ||
+        "Something went wrong."
+      );
     }
   }
 
@@ -97,7 +109,10 @@ export default function ChatSidebar() {
 
       removeFile(id);
     } catch (err) {
-      console.error(err);
+      toast.error(
+        err.response?.data?.detail ||
+        "Something went wrong."
+      );
     }
   }
 

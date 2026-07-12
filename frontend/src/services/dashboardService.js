@@ -1,34 +1,21 @@
-const dashboardStats = {
-  users: 1284,
-  documents: 8450,
-  aiRequests: 42813,
-  storage: "72 GB",
-};
+import api from "../api/api";
 
-const recentActivities = [
-  "Contract uploaded",
-  "AI generated report",
-  "SQL query executed",
-  "Forecast completed",
-  "Email summarized",
-];
-
-const recentDocuments = [
-  "Invoice.pdf",
-  "Report.xlsx",
-  "Meeting.pdf",
-  "Budget.xlsx",
-  "Shipment.pdf",
-];
-
-export function getDashboardStats() {
-  return Promise.resolve(dashboardStats);
+export async function getDashboardStats() {
+  const response = await api.get("/dashboard");
+  return response.data;
 }
 
-export function getRecentActivities() {
-  return Promise.resolve(recentActivities);
+export async function getActivityChart() {
+  const response = await api.get("/dashboard/activity");
+  return response.data;
 }
 
-export function getRecentDocuments() {
-  return Promise.resolve(recentDocuments);
+export async function getRecentActivity() {
+  const response = await api.get("/dashboard/recent-activity");
+  return response.data;
+}
+
+export async function getRecentDocuments() {
+  const response = await api.get("/dashboard/recent-documents");
+  return response.data;
 }

@@ -34,7 +34,10 @@ export default function Chat() {
       const history = await getHistory(currentSession.id);
       setMessages(history);
     } catch (err) {
-      console.error(err);
+      toast.error(
+      err.response?.data?.detail ||
+      "Something went wrong."
+    );
     }
   }
 
@@ -64,7 +67,10 @@ export default function Chat() {
       });
 
     } catch (err) {
-      console.error(err);
+      toast.error(
+        err.response?.data?.detail ||
+        "Something went wrong."
+    );
     }
 
     setLoading(false);

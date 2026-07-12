@@ -4,7 +4,7 @@ import { Outlet } from "react-router-dom";
 
 function MainLayout() {
   return (
-    <div className="flex">
+    <div className="flex min-h-screen bg-gray-100 dark:bg-slate-900 transition-colors duration-300">
 
       <Sidebar />
 
@@ -12,10 +12,8 @@ function MainLayout() {
 
         <Navbar />
 
-        <main className="p-8">
-
+        <main className="p-8 bg-gray-100 dark:bg-slate-900 text-black dark:text-white min-h-screen transition-colors duration-300">
           <Outlet />
-
         </main>
 
       </div>

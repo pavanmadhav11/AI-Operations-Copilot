@@ -1,13 +1,15 @@
 import { create } from "zustand";
+
 import {
   login as loginAPI,
   getCurrentUser,
-  logout as logoutAPI,
 } from "../services/authService";
 
 const useAuthStore = create((set) => ({
   user: null,
+
   token: localStorage.getItem("token"),
+
   isAuthenticated: !!localStorage.getItem("token"),
 
   login: async (email, password) => {
@@ -15,6 +17,12 @@ const useAuthStore = create((set) => ({
       email,
       password,
     });
+
+    // Save JWT
+    localStorage.setItem(
+      "token",
+      data.access_token
+    );
 
     const user = await getCurrentUser();
 
@@ -31,6 +39,7 @@ const useAuthStore = create((set) => ({
 
       set({
         user,
+        token: localStorage.getItem("token"),
         isAuthenticated: true,
       });
     } catch {
@@ -45,7 +54,7 @@ const useAuthStore = create((set) => ({
   },
 
   logout: () => {
-    logoutAPI();
+    localStorage.removeItem("token");
 
     set({
       user: null,

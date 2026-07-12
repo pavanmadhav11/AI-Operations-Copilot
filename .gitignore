@@ -1,19 +1,43 @@
-# Dependencies
-node_modules/
+# ==========================
+# Python
+# ==========================
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.python-version
 
-# Production Build
+# ==========================
+# Environment Variables
+# ==========================
+.env
+.env.*
+
+# ==========================
+# Uploads & Reports
+# ==========================
+backend/uploads/
+backend/reports/
+
+# ==========================
+# Node
+# ==========================
+node_modules/
 dist/
 
-# Environment Files
-.env
-.env.local
-
-# Logs
-npm-debug.log*
-
+# ==========================
 # VS Code
+# ==========================
 .vscode/
 
+# ==========================
 # OS Files
+# ==========================
 .DS_Store
 Thumbs.db
+
+# ==========================
+# Logs
+# ==========================
+*.log

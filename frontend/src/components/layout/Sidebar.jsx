@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useEffect } from "react";
 
 import {
@@ -32,7 +32,7 @@ export default function Sidebar() {
     loadSessions();
   }, []);
 
-  const loadSessions = async () => {
+  async function loadSessions() {
     try {
       const data = await getSessions();
 
@@ -42,57 +42,79 @@ export default function Sidebar() {
         setCurrentSession(data[0]);
       }
     } catch (err) {
-      console.error(err);
+      toast.error(
+        err.response?.data?.detail ||
+        "Something went wrong."
+      );
     }
-  };
+  }
 
-  const handleNewChat = async () => {
+  async function handleNewChat() {
     try {
       const session = await createSession();
 
       addSession(session);
     } catch (err) {
-      console.error(err);
+      toast.error(
+      err.response?.data?.detail ||
+      "Something went wrong."
+    );
     }
-  };
+  }
 
   return (
-    <aside className="bg-slate-900 text-white w-72 min-h-screen flex flex-col">
+    <aside className="bg-slate-900 dark:bg-black text-white w-72 min-h-screen flex flex-col transition-colors">
+
       <div className="text-2xl font-bold p-6 border-b border-slate-700">
         AI Copilot
       </div>
 
       <nav className="p-5">
+
         {menu.map((item) => (
-          <Link
+
+          <NavLink
             key={item.name}
             to={item.path}
-            className="block rounded-lg px-4 py-3 hover:bg-slate-700 mb-2"
+            end={item.path === "/"}
+            className={({ isActive }) =>
+              `block rounded-lg px-4 py-3 mb-2 transition-all ${
+                isActive
+                  ? "bg-blue-600 text-white font-semibold"
+                  : "hover:bg-slate-700"
+              }`
+            }
           >
             {item.name}
-          </Link>
+          </NavLink>
+
         ))}
+
       </nav>
 
       <div className="px-5 mt-2">
+
         <button
           onClick={handleNewChat}
-          className="w-full bg-blue-600 hover:bg-blue-700 rounded-lg py-2"
+          className="w-full bg-blue-600 hover:bg-blue-700 rounded-lg py-2 transition"
         >
           + New Chat
         </button>
+
       </div>
 
       <div className="flex-1 overflow-y-auto p-5">
+
         <h3 className="text-sm text-slate-400 mb-3">
           Chat Sessions
         </h3>
 
         {sessions.map((session) => (
+
           <button
             key={session.id}
             onClick={() => setCurrentSession(session)}
-            className={`w-full text-left p-3 rounded-lg mb-2 ${
+            className={`w-full text-left p-3 rounded-lg mb-2 transition ${
               currentSession?.id === session.id
                 ? "bg-slate-700"
                 : "hover:bg-slate-800"
@@ -100,8 +122,11 @@ export default function Sidebar() {
           >
             {session.title}
           </button>
+
         ))}
+
       </div>
+
     </aside>
   );
 }

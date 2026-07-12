@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import {
   ResponsiveContainer,
   LineChart,
@@ -8,17 +10,29 @@ import {
   Tooltip,
 } from "recharts";
 
-const data = [
-  { day: "Mon", requests: 120 },
-  { day: "Tue", requests: 240 },
-  { day: "Wed", requests: 180 },
-  { day: "Thu", requests: 320 },
-  { day: "Fri", requests: 280 },
-  { day: "Sat", requests: 390 },
-  { day: "Sun", requests: 450 },
-];
+import {
+  getActivityChart,
+} from "../../services/dashboardService";
 
 export default function ActivityChart() {
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    loadChart();
+  }, []);
+
+  async function loadChart() {
+    try {
+      const response = await getActivityChart();
+      setData(response);
+    } catch (err) {
+      toast.error(
+      err.response?.data?.detail ||
+      "Something went wrong."
+    );
+    }
+  }
+
   return (
     <div className="bg-white rounded-xl shadow p-6 h-96">
       <h2 className="text-xl font-semibold mb-5">
@@ -29,7 +43,7 @@ export default function ActivityChart() {
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
 
-          <XAxis dataKey="day" />
+          <XAxis dataKey="date" />
 
           <YAxis />
 

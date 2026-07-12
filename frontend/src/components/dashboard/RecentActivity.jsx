@@ -1,12 +1,28 @@
-const activities = [
-  "📄 Contract uploaded",
-  "🤖 AI generated report",
-  "📊 SQL query executed",
-  "📈 Forecast completed",
-  "📧 Email summarized",
-];
+import { useEffect, useState } from "react";
+
+import {
+  getRecentActivity,
+} from "../../services/dashboardService";
 
 export default function RecentActivity() {
+  const [activities, setActivities] = useState([]);
+
+  useEffect(() => {
+    loadActivities();
+  }, []);
+
+  async function loadActivities() {
+    try {
+      const data = await getRecentActivity();
+      setActivities(data);
+    } catch (err) {
+      toast.error(
+      err.response?.data?.detail ||
+      "Something went wrong."
+    );
+    }
+  }
+
   return (
     <div className="bg-white rounded-xl shadow p-6">
       <h2 className="text-xl font-semibold mb-5">
@@ -19,7 +35,7 @@ export default function RecentActivity() {
             key={index}
             className="border-b pb-3"
           >
-            {item}
+            {item.text}
           </div>
         ))}
       </div>

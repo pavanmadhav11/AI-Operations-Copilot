@@ -5,29 +5,31 @@ import StatCard from "../../components/dashboard/StatCard";
 import ActivityChart from "../../components/dashboard/ActivityChart";
 import RecentActivity from "../../components/dashboard/RecentActivity";
 import RecentDocuments from "../../components/dashboard/RecentDocuments";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 
-import {
-  getDashboardStats,
-} from "../../services/dashboardService";
+import { getDashboardStats } from "../../services/dashboardService";
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
-    async function loadDashboard() {
-      const data = await getDashboardStats();
-      setStats(data);
-    }
-
     loadDashboard();
   }, []);
 
-  if (!stats) {
-    return (
-      <div className="text-center mt-20 text-xl">
-        Loading Dashboard...
-      </div>
+  async function loadDashboard() {
+    try {
+      const data = await getDashboardStats();
+      setStats(data);
+    } catch (err) {
+      toast.error(
+      err.response?.data?.detail ||
+      "Something went wrong."
     );
+    }
+  }
+
+  if (!stats) {
+    return <LoadingSpinner />;
   }
 
   return (
@@ -35,41 +37,41 @@ export default function Dashboard() {
 
       <WelcomeBanner />
 
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
 
         <StatCard
           title="Users"
           value={stats.users}
-          icon="👥"
+          type="users"
           color="text-blue-600"
         />
 
         <StatCard
           title="Documents"
           value={stats.documents}
-          icon="📄"
+          type="documents"
           color="text-green-600"
         />
 
         <StatCard
           title="AI Requests"
           value={stats.aiRequests}
-          icon="🤖"
+          type="ai"
           color="text-purple-600"
         />
 
         <StatCard
           title="Storage"
           value={stats.storage}
-          icon="💾"
+          type="storage"
           color="text-red-600"
         />
 
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
-        <div className="col-span-2">
+        <div className="xl:col-span-2">
           <ActivityChart />
         </div>
 
