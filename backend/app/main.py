@@ -27,8 +27,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
+        "https://ai-operations-copilot-weld.vercel.app",
+        "https://ai-operations-copilot-e241ky21w.vercel.app",
     ],
-    allow_origin_regex=r"https://ai-operations-copilot-.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
