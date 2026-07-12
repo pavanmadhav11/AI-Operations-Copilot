@@ -25,7 +25,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "https://your-vercel-app.vercel.app",
+        "https://ai-operations-copilot-weld.vercel.app/login",
     ],
     allow_credentials=True,
     allow_methods=["*"],
