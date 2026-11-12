@@ -12,7 +12,7 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str
 
-    GROQ_API_KEY: str
+    GROQ_API_KEY: str = ""
     GROQ_MODEL: str
     CORS_ORIGINS: str = ""
 

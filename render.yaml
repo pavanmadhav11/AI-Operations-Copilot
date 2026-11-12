@@ -31,8 +31,6 @@ services:
         fromDatabase:
           name: ai-operations-copilot-db
           property: connectionString
-      - key: GROQ_API_KEY
-        sync: false
       - key: PRESENTATION_PASSWORD
         sync: false
       - key: GROQ_MODEL
