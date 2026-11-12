@@ -1,13 +1,13 @@
 import os
-import shutil
-import uuid
+import json
 from fastapi import UploadFile, HTTPException
 from sqlalchemy.orm import Session
 
 from app.models.uploaded_file import UploadedFile
 
-from app.services.pdf_service import extract_pdf_text
+from app.services.pdf_service import extract_pdf_text, extract_pdf_pages
 from app.ai.pdf_summary import generate_pdf_summary
+from app.utils.file_upload import remove_upload, save_upload
 
 UPLOAD_DIR = "uploads"
 
@@ -20,54 +20,34 @@ def upload_pdf(
     file: UploadFile,
 ):
 
-    if not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(
-            status_code=400,
-            detail="Only PDF files are allowed.",
+    filepath, original_name = save_upload(file, UPLOAD_DIR, {".pdf"})
+    try:
+        extracted = extract_pdf_text(filepath)
+        if not extracted.strip():
+            raise HTTPException(status_code=400, detail="Unable to extract text from this PDF.")
+        summary = generate_pdf_summary(extracted)
+        pdf = UploadedFile(
+            user_id=user_id,
+            session_id=None,
+            filename=original_name,
+            file_type="application/pdf",
+            file_path=filepath,
+            extracted_text=extracted,
+            summary=summary,
+            source_chunks=json.dumps(extract_pdf_pages(filepath)),
         )
-
-    unique_filename = f"{uuid.uuid4()}_{file.filename}"
-
-    filepath = os.path.join(
-        UPLOAD_DIR,
-        unique_filename,
-    )
-
-    with open(filepath, "wb") as buffer:
-        shutil.copyfileobj(
-            file.file,
-            buffer,
-        )
-
-    extracted = extract_pdf_text(filepath)
-
-    if len(extracted.strip()) == 0:
-        raise HTTPException(
-            status_code=400,
-            detail="Unable to extract text.",
-        )
-
-    summary = generate_pdf_summary(
-        extracted,
-    )
-
-    pdf = UploadedFile(
-        user_id=user_id,
-        session_id=None,
-        filename=file.filename,
-        file_type=file.content_type,
-        file_path=filepath,
-        extracted_text=extracted,
-        summary=summary,
-    )
-
-    db.add(pdf)
-
-    db.commit()
-
-    db.refresh(pdf)
-
-    return pdf
+        db.add(pdf)
+        db.commit()
+        db.refresh(pdf)
+        return pdf
+    except HTTPException:
+        db.rollback()
+        remove_upload(filepath, UPLOAD_DIR)
+        raise
+    except Exception as error:
+        db.rollback()
+        remove_upload(filepath, UPLOAD_DIR)
+        raise HTTPException(status_code=400, detail="Could not process this PDF.") from error
 
 
 def get_pdfs(
@@ -105,8 +85,7 @@ def delete_pdf(
     if not pdf:
         return False
 
-    if os.path.exists(pdf.file_path):
-        os.remove(pdf.file_path)
+    remove_upload(pdf.file_path, UPLOAD_DIR)
 
     db.delete(pdf)
 

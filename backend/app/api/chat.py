@@ -31,6 +31,7 @@ def chat(
         db=db,
         session_id=request.session_id,
         message=request.message,
+        user_id=current_user.id,
     )
 
     return ChatResponse(
@@ -47,4 +48,5 @@ def history(
     return get_chat_history(
         db=db,
         session_id=session_id,
+        user_id=current_user.id,
     )

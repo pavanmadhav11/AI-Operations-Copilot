@@ -52,6 +52,7 @@ class UploadedFile(Base):
 
     summary = Column(Text)
     workbook_json = Column(Text)
+    source_chunks = Column(Text)
 
     uploaded_at = Column(
         DateTime(timezone=True),

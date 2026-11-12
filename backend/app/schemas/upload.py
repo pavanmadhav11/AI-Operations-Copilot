@@ -1,5 +1,7 @@
 from datetime import datetime
-from pydantic import BaseModel
+import json
+
+from pydantic import BaseModel, field_validator
 
 
 class UploadedFileResponse(BaseModel):
@@ -9,7 +11,6 @@ class UploadedFileResponse(BaseModel):
 
     filename: str
     file_type: str
-    file_path: str
 
     summary: str | None = None
     workbook_json: str | None = None
@@ -18,3 +19,17 @@ class UploadedFileResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+    @field_validator("workbook_json")
+    @classmethod
+    def remove_internal_workbook_path(cls, value):
+        if not value:
+            return value
+        try:
+            workbook = json.loads(value)
+        except json.JSONDecodeError:
+            return None
+        if not isinstance(workbook, dict):
+            return None
+        workbook.pop("workbook", None)
+        return json.dumps(workbook, default=str)

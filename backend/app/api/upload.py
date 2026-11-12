@@ -48,6 +48,7 @@ def list_uploaded_files(
     return get_uploaded_files(
         db=db,
         session_id=session_id,
+        user_id=current_user.id,
     )
 
 

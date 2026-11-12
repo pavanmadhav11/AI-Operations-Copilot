@@ -31,3 +31,8 @@ export async function deleteExcel(id) {
 
   return response.data;
 }
+
+export async function applySalesDemand(id) {
+  const response = await api.post(`/excel/${id}/sales-demand`);
+  return response.data;
+}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import ChatSidebar from "../../components/chat/ChatSidebar";
 import ChatWindow from "../../components/chat/ChatWindow";
@@ -19,30 +19,43 @@ export default function Chat() {
     messages,
     setMessages,
     addMessage,
+    clearMessages,
   } = useChatStore();
 
   const { currentSession } = useSessionStore();
+  const [error, setError] = useState("");
+  const activeSessionId = useRef(currentSession?.id);
 
   useEffect(() => {
-    if (currentSession) {
-      loadHistory();
+    let active = true;
+    activeSessionId.current = currentSession?.id;
+    clearMessages();
+    setError("");
+    setLoading(false);
+    if (!currentSession) {
+      return () => {
+        active = false;
+      };
     }
-  }, [currentSession]);
 
-  async function loadHistory() {
-    try {
-      const history = await getHistory(currentSession.id);
-      setMessages(history);
-    } catch (err) {
-      toast.error(
-      err.response?.data?.detail ||
-      "Something went wrong."
-    );
+    async function loadSessionHistory() {
+      try {
+        const history = await getHistory(currentSession.id);
+        if (active) setMessages(history);
+      } catch (err) {
+        if (active) setError(err.response?.data?.detail || "I couldn't load this conversation. Please try again.");
+      }
     }
-  }
+
+    loadSessionHistory();
+    return () => {
+      active = false;
+    };
+  }, [currentSession?.id]);
 
   async function handleSend(text) {
-    if (!currentSession) return;
+    if (!currentSession || loading) return;
+    const sessionId = currentSession.id;
 
     const userMessage = {
       id: Date.now(),
@@ -51,29 +64,29 @@ export default function Chat() {
     };
 
     addMessage(userMessage);
-
+    setError("");
     setLoading(true);
 
     try {
       const response = await sendMessage(
-        currentSession.id,
+        sessionId,
         text
       );
 
-      addMessage({
-        id: Date.now() + 1,
-        role: "assistant",
-        message: response.response,
-      });
-
+      if (activeSessionId.current === sessionId) {
+        addMessage({
+          id: Date.now() + 1,
+          role: "assistant",
+          message: response.response,
+        });
+      }
     } catch (err) {
-      toast.error(
-        err.response?.data?.detail ||
-        "Something went wrong."
-    );
+      if (activeSessionId.current === sessionId) {
+        setError(err.response?.data?.detail || "I couldn't answer that. Try asking in a different way.");
+      }
+    } finally {
+      if (activeSessionId.current === sessionId) setLoading(false);
     }
-
-    setLoading(false);
   }
 
   return (
@@ -88,8 +101,12 @@ export default function Chat() {
           loading={loading}
         />
 
+        {error && <p className="border-t border-rose-200 bg-rose-50 px-5 py-3 text-sm text-rose-800">{error}</p>}
+
         <ChatInput
           onSend={handleSend}
+          loading={loading}
+          hasSession={Boolean(currentSession)}
         />
 
       </div>

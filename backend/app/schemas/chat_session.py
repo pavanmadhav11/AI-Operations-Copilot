@@ -6,6 +6,10 @@ class ChatSessionCreate(BaseModel):
     title: str = "New Chat"
 
 
+class ChatSessionUpdate(BaseModel):
+    title: str
+
+
 class ChatSessionResponse(BaseModel):
     id: int
     title: str

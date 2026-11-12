@@ -5,6 +5,11 @@ export async function getDashboardStats() {
   return response.data;
 }
 
+export async function getLowStockInventory() {
+  const response = await api.get("/dashboard/low-stock");
+  return response.data;
+}
+
 export async function getActivityChart() {
   const response = await api.get("/dashboard/activity");
   return response.data;

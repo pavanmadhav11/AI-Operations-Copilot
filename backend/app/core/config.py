@@ -14,6 +14,7 @@ class Settings(BaseSettings):
 
     GROQ_API_KEY: str
     GROQ_MODEL: str
+    CORS_ORIGINS: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env"

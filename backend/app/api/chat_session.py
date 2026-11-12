@@ -7,6 +7,7 @@ from app.db.session import get_db
 from app.schemas.chat_session import (
     ChatSessionCreate,
     ChatSessionResponse,
+    ChatSessionUpdate,
 )
 
 from app.services.chat_session_service import (
@@ -14,6 +15,7 @@ from app.services.chat_session_service import (
     get_sessions,
     get_session,
     delete_session,
+    rename_session,
 )
 
 router = APIRouter(
@@ -78,3 +80,20 @@ def remove_session(
     return {
         "message": "Session deleted"
     }
+
+
+@router.patch("/{session_id}", response_model=ChatSessionResponse)
+def rename_existing_session(
+    session_id: int,
+    request: ChatSessionUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    session = get_session(
+        db=db,
+        session_id=session_id,
+        user_id=current_user.id,
+    )
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return rename_session(db, session, request.title)

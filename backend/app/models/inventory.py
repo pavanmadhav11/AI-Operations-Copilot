@@ -2,6 +2,8 @@ from sqlalchemy import (
     Column,
     Integer,
     ForeignKey,
+    Float,
+    Index,
 )
 
 from app.db.database import Base
@@ -9,6 +11,7 @@ from app.db.database import Base
 
 class Inventory(Base):
     __tablename__ = "inventory"
+    __table_args__ = (Index("ix_inventory_product_warehouse", "product_id", "warehouse_id"),)
 
     id = Column(
         Integer,
@@ -29,3 +32,7 @@ class Inventory(Base):
     quantity = Column(Integer)
 
     reorder_level = Column(Integer)
+
+    average_daily_demand = Column(Float, nullable=False, default=0)
+
+    supplier_lead_time_days = Column(Integer, nullable=False, default=0)

@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import useAuthStore from "../../store/authStore";
 import {
   uploadExcel,
   getExcels,
   deleteExcel,
+  applySalesDemand,
 } from "../../services/excelAnalyzerService";
 
 export default function ExcelAnalyzer() {
@@ -11,6 +14,10 @@ export default function ExcelAnalyzer() {
   const [workbook, setWorkbook] = useState(null);
   const [selectedSheet, setSelectedSheet] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [salesLoading, setSalesLoading] = useState(false);
+  const [salesResult, setSalesResult] = useState(null);
+  const user = useAuthStore((state) => state.user);
+  const canImportSales = user && ["admin", "manager"].includes(user.role);
 
   useEffect(() => {
     loadFiles();
@@ -35,6 +42,7 @@ export default function ExcelAnalyzer() {
 
   function selectWorkbook(file) {
     setSelected(file);
+    setSalesResult(null);
 
     if (file.workbook_json) {
       const wb = JSON.parse(file.workbook_json);
@@ -49,6 +57,20 @@ export default function ExcelAnalyzer() {
     } else {
       setWorkbook(null);
       setSelectedSheet(null);
+    }
+  }
+
+  async function handleSalesImport() {
+    if (!selected) return;
+    setSalesLoading(true);
+    try {
+      const result = await applySalesDemand(selected.id);
+      setSalesResult(result);
+      toast.success("Sales history applied to demand estimates.");
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Could not apply this workbook as sales history.");
+    } finally {
+      setSalesLoading(false);
     }
   }
 
@@ -144,6 +166,12 @@ export default function ExcelAnalyzer() {
           </button>
         )}
 
+        {selected && canImportSales && (
+          <button onClick={handleSalesImport} disabled={salesLoading} className="rounded-lg bg-purple-700 px-5 py-3 text-white disabled:opacity-50">
+            {salesLoading ? "Calculating..." : "Use as sales history"}
+          </button>
+        )}
+
       </div>
 
       <div className="grid grid-cols-4 gap-6">
@@ -191,6 +219,28 @@ export default function ExcelAnalyzer() {
                 </p>
 
               </div>
+
+              {selectedSheet && (
+                <div className="bg-white rounded-xl shadow p-6">
+                  <h2 className="mb-3 text-xl font-semibold">Import checks</h2>
+                  {(selectedSheet.validation?.errors || []).length === 0 && (selectedSheet.validation?.warnings || []).length === 0 ? (
+                    <p className="text-emerald-700">No common spreadsheet issues found.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {(selectedSheet.validation?.errors || []).map((message) => <p className="text-red-700" key={message}>Error: {message}</p>)}
+                      {(selectedSheet.validation?.warnings || []).map((message) => <p className="text-amber-700" key={message}>Check: {message}</p>)}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {salesResult && (
+                <div className="bg-white rounded-xl shadow p-6">
+                  <h2 className="mb-3 text-xl font-semibold">Demand estimates from sales</h2>
+                  {salesResult.updated.map((item) => <p className="mb-2" key={item.product_name}>{item.product_name}: {item.total_units_sold} units over {item.days_in_period} days · {item.average_daily_demand} units/day</p>)}
+                  {salesResult.unmatched_products.length > 0 && <p className="mt-3 text-amber-700">Not found in inventory: {salesResult.unmatched_products.join(", ")}</p>}
+                </div>
+              )}
 
               <div className="bg-white rounded-xl shadow p-6">
 

@@ -16,3 +16,8 @@ export const createSession = async () => {
 export const deleteSession = async (id) => {
   await api.delete(`/chat/sessions/${id}`);
 };
+
+export const renameSession = async (id, title) => {
+  const response = await api.patch(`/chat/sessions/${id}`, { title });
+  return response.data;
+};

@@ -1,39 +1,38 @@
-FORBIDDEN_KEYWORDS = [
-    "INSERT",
-    "UPDATE",
-    "DELETE",
-    "DROP",
-    "ALTER",
-    "CREATE",
-    "TRUNCATE",
-    "GRANT",
-    "REVOKE",
-    "MERGE",
-]
+import re
 
 
-def validate_sql(sql: str):
+ALLOWED_COLUMN = r"(?:id|warehouse_id|product_id|quantity|reorder_level)"
 
-    sql = sql.strip()
+SELECT_PATTERN = re.compile(
+    rf"^SELECT\s+(?:\*|{ALLOWED_COLUMN}(?:\s*,\s*{ALLOWED_COLUMN})*)\s+FROM\s+inventory(?:\s+WHERE\s+{ALLOWED_COLUMN}\s*(?:=|<|>|<=|>=|!=)\s*(?:[0-9]+|{ALLOWED_COLUMN}))?(?:\s+ORDER\s+BY\s+{ALLOWED_COLUMN}(?:\s+(?:ASC|DESC))?)?(?:\s+LIMIT\s+[0-9]+)?$",
+    re.IGNORECASE,
+)
 
-    if sql == "NOT_POSSIBLE":
-        raise ValueError(
-            "The request cannot be answered with a read-only SQL query."
-        )
+UPDATE_PATTERN = re.compile(
+    r"^UPDATE\s+inventory\s+SET\s+quantity\s*=\s*([0-9]+)\s+WHERE\s+id\s*=\s*([0-9]+)$",
+    re.IGNORECASE,
+)
 
-    sql_upper = sql.upper()
 
-    if not sql_upper.startswith("SELECT"):
-        raise ValueError(
-            "Only SELECT statements are allowed."
-        )
+def validate_sql(sql: str, role: str):
+    statement = sql.strip().rstrip(";").strip()
 
-    for keyword in FORBIDDEN_KEYWORDS:
+    if not statement or ";" in statement or "--" in statement or "/*" in statement:
+        raise ValueError("Only one simple SQL statement is allowed.")
 
-        if keyword in sql_upper:
+    if SELECT_PATTERN.fullmatch(statement):
+        return {"operation": "select", "sql": statement}
 
-            raise ValueError(
-                f"Unsafe SQL detected: {keyword}"
-            )
+    update = UPDATE_PATTERN.fullmatch(statement)
+    if update:
+        if role not in {"admin", "manager"}:
+            raise ValueError("Only managers and admins can change stock.")
+        return {
+            "operation": "update",
+            "quantity": int(update.group(1)),
+            "inventory_id": int(update.group(2)),
+        }
 
-    return True
+    raise ValueError(
+        "Use a SELECT from inventory, or set a stock quantity for one inventory ID."
+    )

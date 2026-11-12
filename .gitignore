@@ -19,6 +19,9 @@ __pycache__/
 # ==========================
 backend/uploads/
 backend/reports/
+backend/demo_data/
+backend/business_data/
+backend/.local-postgres/
 
 # ==========================
 # Node

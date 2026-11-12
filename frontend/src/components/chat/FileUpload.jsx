@@ -1,4 +1,6 @@
 import { uploadFile } from "../../services/uploadService";
+import toast from "react-hot-toast";
+import { Paperclip } from "lucide-react";
 
 import useUploadStore from "../../store/uploadStore";
 import useSessionStore from "../../store/sessionStore";
@@ -9,12 +11,13 @@ export default function FileUpload() {
   const { currentSession } = useSessionStore();
 
   async function handleUpload(e) {
-    const file = e.target.files[0];
+    const input = e.currentTarget;
+    const file = input.files[0];
 
     if (!file) return;
 
     if (!currentSession) {
-      alert("Please create or select a chat session first.");
+      toast.error("Create or select a chat before uploading a document.");
       return;
     }
 
@@ -26,24 +29,27 @@ export default function FileUpload() {
 
       addFile(uploaded);
 
-      e.target.value = "";
+      input.value = "";
     } catch (err) {
       toast.error(
         err.response?.data?.detail ||
-        "Something went wrong."
+        "Could not upload this document. Check the file and try again."
       );
+    } finally {
+      input.value = "";
     }
   }
 
   return (
-    <label className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-center block">
-      Upload Document
+    <label className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 hover:text-blue-700" title="Attach a PDF or spreadsheet">
+      <Paperclip size={19} />
 
       <input
         hidden
         type="file"
         accept=".pdf,.xlsx,.xls"
         onChange={handleUpload}
+        aria-label="Attach a PDF or spreadsheet"
       />
     </label>
   );

@@ -16,7 +16,7 @@ export default function ChatWindow({
   }, [messages, loading]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 bg-slate-100">
+    <div className="flex-1 overflow-y-auto bg-slate-50 px-4 py-6 sm:px-8">
 
       {messages.length === 0 ? (
         <div className="flex h-full justify-center items-center">
@@ -34,7 +34,7 @@ export default function ChatWindow({
         </div>
       ) : (
         <>
-          <div className="space-y-5">
+          <div className="mx-auto max-w-4xl space-y-6">
 
             {messages.map((message) => (
               <ChatBubble

@@ -2,7 +2,7 @@ from fastapi import APIRouter, UploadFile, File, Depends
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import get_current_user, require_roles
 
 from app.schemas.upload import UploadedFileResponse
 
@@ -10,6 +10,7 @@ from app.services.excel_analyzer_service import (
     upload_excel,
     get_excels,
     delete_excel,
+    apply_sales_demand,
 )
 
 router = APIRouter(
@@ -68,3 +69,12 @@ def remove_excel(
     return {
         "message": "Excel not found."
     }
+
+
+@router.post("/{file_id}/sales-demand")
+def update_sales_demand(
+    file_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_roles("admin", "manager")),
+):
+    return apply_sales_demand(db, current_user.id, file_id)

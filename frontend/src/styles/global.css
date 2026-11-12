@@ -20,3 +20,26 @@ body {
 * {
   box-sizing: border-box;
 }
+
+@keyframes low-stock-scroll {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+.low-stock-track {
+  animation: low-stock-scroll linear infinite;
+}
+
+.low-stock-track:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .low-stock-track {
+    animation: none;
+  }
+}

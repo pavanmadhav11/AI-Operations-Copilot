@@ -1,7 +1,6 @@
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.services.schema_service import get_database_schema
 from app.ai.llm import ask_llm
 from app.ai.sql_prompt import SQL_SYSTEM_PROMPT
 from app.services.sql_validator import validate_sql
@@ -9,21 +8,22 @@ from app.utils.sql_utils import clean_sql
 
 
 def generate_sql(
-    db: Session,
     question: str,
+    role: str,
 ):
-
-    schema = get_database_schema(db)
-
 
     messages = [
         {
             "role": "system",
-            "content": SQL_SYSTEM_PROMPT,
+            "content": SQL_SYSTEM_PROMPT + (
+                " This manager or admin may use SELECT or the exact single-row quantity UPDATE format."
+                if role in {"admin", "manager"}
+                else " This employee can only use SELECT statements."
+            ),
         },
         {
             "role": "system",
-            "content": f"Database Schema:\n\n{schema}",
+            "content": "Inventory columns: id, warehouse_id, product_id, quantity, reorder_level.",
         },
         {
             "role": "user",
@@ -36,7 +36,7 @@ def generate_sql(
 
     sql = sql.strip()
 
-    validate_sql(sql)
+    validate_sql(sql, role)
 
     return sql
 
@@ -44,10 +44,12 @@ def generate_sql(
 def execute_sql(
     db: Session,
     sql: str,
+    role: str,
 ):
+    query = validate_sql(sql, role)
 
-    result = db.execute(text(sql))
+    if query["operation"] == "update":
+        return query
 
-    rows = result.mappings().all()
-
-    return [dict(row) for row in rows]
+    result = db.execute(text(query["sql"]))
+    return [dict(row) for row in result.mappings().all()]

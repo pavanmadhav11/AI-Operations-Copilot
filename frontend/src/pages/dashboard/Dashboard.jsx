@@ -5,7 +5,11 @@ import StatCard from "../../components/dashboard/StatCard";
 import ActivityChart from "../../components/dashboard/ActivityChart";
 import RecentActivity from "../../components/dashboard/RecentActivity";
 import RecentDocuments from "../../components/dashboard/RecentDocuments";
+import LowStockAlerts from "../../components/dashboard/LowStockAlerts";
+import ExpiringBatches from "../../components/dashboard/ExpiringBatches";
+import RecommendationMetrics from "../../components/dashboard/RecommendationMetrics";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
+import toast from "react-hot-toast";
 
 import { getDashboardStats } from "../../services/dashboardService";
 
@@ -36,6 +40,12 @@ export default function Dashboard() {
     <div className="space-y-8">
 
       <WelcomeBanner />
+
+      <LowStockAlerts />
+
+      <ExpiringBatches />
+
+      <RecommendationMetrics />
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
 

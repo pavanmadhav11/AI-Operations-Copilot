@@ -1,9 +1,11 @@
 import { useEffect } from "react";
+import toast from "react-hot-toast";
 
 import {
   createSession,
   getSessions,
   deleteSession,
+  renameSession,
 } from "../../services/sessionService";
 
 import {
@@ -13,8 +15,6 @@ import {
 
 import useSessionStore from "../../store/sessionStore";
 import useUploadStore from "../../store/uploadStore";
-
-import FileUpload from "./FileUpload";
 
 export default function ChatSidebar() {
   const {
@@ -50,7 +50,8 @@ export default function ChatSidebar() {
       setSessions(data);
 
       if (data.length > 0) {
-        setCurrentSession(data[0]);
+        const selected = data.find((session) => session.id === currentSession?.id) || data[0];
+        setCurrentSession(selected);
       } else {
         setCurrentSession(null);
       }
@@ -91,15 +92,28 @@ export default function ChatSidebar() {
   }
 
   async function handleDelete(id) {
+    const session = sessions.find((item) => item.id === id);
+    if (!window.confirm(`Delete "${session?.title || "this chat"}" and its messages?`)) return;
     try {
       await deleteSession(id);
-
       await loadSessions();
     } catch (err) {
       toast.error(
         err.response?.data?.detail ||
         "Something went wrong."
       );
+    }
+  }
+
+  async function handleRename(session) {
+    const title = window.prompt("Enter a name for this chat", session.title);
+    if (title === null || !title.trim() || title.trim() === session.title) return;
+    try {
+      const updated = await renameSession(session.id, title.trim());
+      setSessions(sessions.map((item) => item.id === session.id ? updated : item));
+      if (currentSession?.id === session.id) setCurrentSession(updated);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Could not rename this chat.");
     }
   }
 
@@ -134,7 +148,7 @@ export default function ChatSidebar() {
         </button>
       </div>
 
-      <div className="px-5">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4">
         <h3 className="text-sm text-slate-400 mb-3">
           Chat Sessions
         </h3>
@@ -142,38 +156,30 @@ export default function ChatSidebar() {
         {sessions.map((session) => (
           <div
             key={session.id}
-            className={`rounded-lg mb-2 p-3 ${
+            className={`group mb-2 rounded-lg p-3 ${
               currentSession?.id === session.id
                 ? "bg-blue-600"
                 : "bg-slate-800"
             }`}
           >
-            <div
-              className="cursor-pointer"
-              onClick={() => setCurrentSession(session)}
-            >
+            <button className="w-full truncate text-left" onClick={() => setCurrentSession(session)} title={session.title}>
               {session.title}
-            </div>
-
-            <button
-              onClick={() => handleDelete(session.id)}
-              className="text-xs text-red-300 mt-2"
-            >
-              Delete
             </button>
+            <div className="mt-2 flex gap-3 text-xs">
+              <button onClick={() => handleRename(session)} className="text-slate-200 hover:text-white">Rename</button>
+              <button onClick={() => handleDelete(session.id)} className="text-rose-200 hover:text-white">Delete</button>
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="px-5 mt-6">
+      <div className="px-5 pt-4">
         <h3 className="text-sm text-slate-400 mb-3">
           Documents
         </h3>
-
-        <FileUpload />
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 mt-4">
+      <div className="max-h-48 overflow-y-auto px-5 pb-4">
         {files.map((file) => (
           <div
             key={file.id}

@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.models.chat_session import ChatSession
@@ -45,6 +46,16 @@ def get_session(
         )
         .first()
     )
+
+
+def rename_session(db: Session, session: ChatSession, title: str):
+    cleaned_title = title.strip()
+    if not cleaned_title:
+        raise HTTPException(status_code=400, detail="Chat name cannot be empty.")
+    session.title = cleaned_title[:150]
+    db.commit()
+    db.refresh(session)
+    return session
 
 
 def delete_session(

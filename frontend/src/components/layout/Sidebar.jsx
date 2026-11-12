@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useEffect } from "react";
+import toast from "react-hot-toast";
 
 import {
   createSession,
@@ -7,6 +8,7 @@ import {
 } from "../../services/sessionService";
 
 import useSessionStore from "../../store/sessionStore";
+import useAuthStore from "../../store/authStore";
 
 const menu = [
   { name: "Dashboard", path: "/" },
@@ -14,8 +16,8 @@ const menu = [
   { name: "SQL Generator", path: "/sql" },
   { name: "PDF Analyzer", path: "/pdf" },
   { name: "Excel Analyzer", path: "/excel" },
-  { name: "Analytics", path: "/analytics" },
   { name: "Reports", path: "/reports" },
+  { name: "Inventory", path: "/inventory" },
   { name: "Settings", path: "/settings" },
 ];
 
@@ -27,6 +29,22 @@ export default function Sidebar() {
     setCurrentSession,
     addSession,
   } = useSessionStore();
+  const user = useAuthStore((state) => state.user);
+  const visibleMenu = [
+    ...menu,
+    ...(user?.role === "admin" ? [{ name: "Analytics", path: "/analytics" }] : []),
+    { name: "Expiry & Batches", path: "/inventory/batches" },
+    ...(user && ["admin", "manager"].includes(user.role)
+      ? [
+          { name: "Add Inventory Item", path: "/inventory/add" },
+          { name: "Stock Transfers", path: "/inventory/transfers" },
+          { name: "Warehouses", path: "/inventory/warehouses" },
+          { name: "Stock Action History", path: "/inventory/actions" },
+          { name: "Supplier Quotes & Drafts", path: "/procurement" },
+        ]
+      : []),
+    ...(user?.role === "admin" ? [{ name: "User Roles", path: "/users" }] : []),
+  ];
 
   useEffect(() => {
     loadSessions();
@@ -71,7 +89,7 @@ export default function Sidebar() {
 
       <nav className="p-5">
 
-        {menu.map((item) => (
+        {visibleMenu.map((item) => (
 
           <NavLink
             key={item.name}
