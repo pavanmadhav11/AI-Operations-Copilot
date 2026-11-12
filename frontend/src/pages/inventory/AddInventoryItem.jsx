@@ -80,7 +80,7 @@ export default function AddInventoryItem() {
               name={name}
               onChange={updateField}
               required
-              step={name === "price" ? "0.01" : type === "number" ? "1" : undefined}
+              step={name === "price" ? "0.01" : name === "average_daily_demand" ? "0.1" : type === "number" ? "1" : undefined}
               type={type}
               value={form[name]}
             />
