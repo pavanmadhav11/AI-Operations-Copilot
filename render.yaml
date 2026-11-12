@@ -33,10 +33,13 @@ services:
           property: connectionString
       - key: GROQ_API_KEY
         sync: false
+      - key: PRESENTATION_PASSWORD
+        sync: false
       - key: GROQ_MODEL
         value: llama-3.3-70b-versatile
       - key: CORS_ORIGINS
         value: https://ai-operations-copilot-web.onrender.com
+    afterFirstDeployCommand: python -m app.seed_demo_data --confirm-presentation-data
 
   - type: web
     name: ai-operations-copilot-web
