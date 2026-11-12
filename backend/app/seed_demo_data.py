@@ -139,10 +139,10 @@ def create_demo_files(today):
     return quote_path, guide_path, workbook_path
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--confirm-presentation-data", action="store_true", required=True)
-    parser.parse_args()
+    parser.parse_args(argv)
     demo_password = os.environ.get(DEMO_PASSWORD_ENV)
     if not demo_password or len(demo_password) < 12:
         raise SystemExit(f"Set {DEMO_PASSWORD_ENV} to a password with at least 12 characters.")
@@ -154,7 +154,8 @@ def main():
     try:
         existing = db.query(User).filter(func.lower(User.email).in_([email.lower() for email in demo_emails])).first()
         if existing:
-            raise SystemExit("Presentation accounts already exist. No database records were changed.")
+            print("Presentation accounts already exist. No database records were changed.")
+            return
 
         users = {}
         for role, (email, name) in DEMO_USERS.items():

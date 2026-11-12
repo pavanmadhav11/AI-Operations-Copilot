@@ -49,6 +49,10 @@ app.add_middleware(
 @app.on_event("startup")
 def startup():
     init_db()
+    if settings.SEED_PRESENTATION_DATA:
+        from app.seed_demo_data import main as seed_presentation_data
+
+        seed_presentation_data(["--confirm-presentation-data"])
 
 
 
