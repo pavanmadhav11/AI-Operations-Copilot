@@ -30,6 +30,10 @@ def correct_inventory_terms(question: str, db: Session):
         if not entity_words:
             continue
         entity_key = " ".join(entity_words).casefold()
+        exact_entity_present = any(
+            " ".join(match.group(0) for match in tokens[start:start + len(entity_words)]).casefold() == entity_key
+            for start in range(len(tokens) - len(entity_words) + 1)
+        )
         for start in range(len(tokens) - len(entity_words) + 1):
             span = tokens[start:start + len(entity_words)]
             actual_words = [match.group(0) for match in span]
@@ -50,6 +54,20 @@ def correct_inventory_terms(question: str, db: Session):
                 "matched": name,
                 "type": entity_type,
             })
+        if not exact_entity_present:
+            for token in tokens:
+                actual_word = token.group(0)
+                for entity_word in entity_words:
+                    score = SequenceMatcher(None, actual_word.casefold(), entity_word.casefold()).ratio()
+                    if score < 0.84:
+                        continue
+                    span_key = (token.start(), token.end())
+                    candidates.setdefault(span_key, []).append({
+                        "score": score,
+                        "original": actual_word,
+                        "matched": name,
+                        "type": entity_type,
+                    })
 
     selected = []
     for (start, end), matches in candidates.items():
@@ -58,7 +76,7 @@ def correct_inventory_terms(question: str, db: Session):
             continue
         selected.append((start, end, matches[0]))
 
-    selected.sort(key=lambda item: item[2]["score"], reverse=True)
+    selected.sort(key=lambda item: (item[1] - item[0], item[2]["score"]), reverse=True)
     accepted = []
     for candidate in selected:
         start, end, _ = candidate
