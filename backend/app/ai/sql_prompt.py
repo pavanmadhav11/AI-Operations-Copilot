@@ -6,6 +6,7 @@ Every SELECT must include the id column. Use SELECT * for broad inventory lists.
 Stock changes must use exactly UPDATE inventory SET quantity = number WHERE id = number.
 Do not use joins, other tables, OR conditions, comments, or multiple statements.
 Use AND to combine supported filters.
+Interpret common spelling mistakes and informal wording. Use the closest inventory name only when the match is clear; otherwise return NOT_POSSIBLE.
 Use only the inventory columns id, warehouse_id, product_id, quantity, and reorder_level.
 If the request does not fit these rules, return NOT_POSSIBLE.
 """

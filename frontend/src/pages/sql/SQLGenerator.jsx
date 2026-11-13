@@ -11,6 +11,7 @@ export default function SQLGenerator() {
   const [sql, setSql] = useState("");
   const [rows, setRows] = useState([]);
   const [pendingAction, setPendingAction] = useState(null);
+  const [corrections, setCorrections] = useState([]);
   const user = useAuthStore((state) => state.user);
   const canChangeStock = user && ["admin", "manager"].includes(user.role);
 
@@ -19,12 +20,14 @@ export default function SQLGenerator() {
     setSql("");
     setRows([]);
     setPendingAction(null);
+    setCorrections([]);
     try {
       const response = await generateSQL(question);
       if (!response.success) {
         toast.error(response.message);
       } else {
         setSql(response.sql);
+        setCorrections(response.corrections || []);
         if (response.confirmation_required) {
           setRows([]);
           setPendingAction(response.result);
@@ -63,13 +66,31 @@ export default function SQLGenerator() {
     <div className="p-8">
       <h1 className="mb-2 text-3xl font-bold">Stock Assistant</h1>
       <p className="mb-6 text-slate-600">
-        Ask a stock question in plain language. Employees can view stock. Managers and admins can preview a quantity change before confirming it.
+        Ask inventory questions in plain language. Managers and admins can prepare stock changes for review; employees can look up stock.
       </p>
       <SQLInput onGenerate={handleGenerate} loading={loading} />
+      {corrections.length > 0 && (
+        <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900" role="status">
+          <p className="font-semibold">We matched these inventory names:</p>
+          <ul className="mt-1 list-inside list-disc">
+            {corrections.map((correction, index) => (
+              <li key={`${correction.original}-${index}`}>
+                “{correction.original}” → “{correction.matched}” ({correction.type})
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <SQLResult sql={sql} />
       <SQLTable rows={rows} />
+      {sql && rows.length === 0 && !pendingAction && (
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+          <h2 className="font-semibold text-slate-900">No matching inventory found</h2>
+          <p className="mt-1 text-sm text-slate-500">Try a different product name or adjust your stock filters.</p>
+        </div>
+      )}
       {pendingAction && canChangeStock && (
-        <section className="mt-6 max-w-2xl rounded-xl border border-amber-300 bg-amber-50 p-6">
+        <section className="mt-6 max-w-2xl rounded-2xl border border-amber-300 bg-amber-50 p-6 shadow-sm">
           <h2 className="text-xl font-semibold text-slate-900">Review stock change</h2>
           <p className="mt-1 text-sm text-slate-600">Check the item and quantity before saving this adjustment.</p>
           <dl className="mt-4 grid grid-cols-1 gap-3 rounded-lg border border-amber-200 bg-white p-4 sm:grid-cols-2">
@@ -81,8 +102,8 @@ export default function SQLGenerator() {
           </dl>
           <p className="mt-3 text-sm text-slate-600">The stock is updated only after you confirm. The change is added to movement history.</p>
           <div className="mt-5 flex gap-3">
-            <button className="rounded bg-blue-700 px-4 py-2 text-white" onClick={confirmAction}>Confirm change</button>
-            <button className="rounded border border-slate-400 px-4 py-2" onClick={cancelAction}>Cancel</button>
+            <button className="rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800" onClick={confirmAction}>Confirm change</button>
+            <button className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50" onClick={cancelAction}>Cancel</button>
           </div>
         </section>
       )}

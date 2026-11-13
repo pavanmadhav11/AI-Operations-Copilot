@@ -1,3 +1,6 @@
+import re
+from difflib import SequenceMatcher
+
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -8,6 +11,72 @@ from app.models.product import Product
 from app.models.warehouse import Warehouse
 from app.services.sql_validator import validate_sql
 from app.utils.sql_utils import clean_sql
+
+
+def correct_inventory_terms(question: str, db: Session):
+    entities = [
+        ("product", name)
+        for (name,) in db.query(Product.name).filter(Product.name.isnot(None)).all()
+    ]
+    entities.extend(
+        ("warehouse", name)
+        for (name,) in db.query(Warehouse.name).filter(Warehouse.name.isnot(None)).all()
+    )
+    tokens = list(re.finditer(r"[A-Za-z0-9]+", question))
+    candidates = {}
+
+    for entity_type, name in entities:
+        entity_words = re.findall(r"[A-Za-z0-9]+", name)
+        if not entity_words:
+            continue
+        entity_key = " ".join(entity_words).casefold()
+        for start in range(len(tokens) - len(entity_words) + 1):
+            span = tokens[start:start + len(entity_words)]
+            actual_words = [match.group(0) for match in span]
+            actual_key = " ".join(actual_words).casefold()
+            if actual_key == entity_key:
+                continue
+            word_scores = [
+                SequenceMatcher(None, actual.casefold(), expected.casefold()).ratio()
+                for actual, expected in zip(actual_words, entity_words)
+            ]
+            score = SequenceMatcher(None, actual_key, entity_key).ratio()
+            if score < 0.84 or any(word_score < 0.78 for word_score in word_scores):
+                continue
+            span_key = (span[0].start(), span[-1].end())
+            candidates.setdefault(span_key, []).append({
+                "score": score,
+                "original": question[span[0].start():span[-1].end()],
+                "matched": name,
+                "type": entity_type,
+            })
+
+    selected = []
+    for (start, end), matches in candidates.items():
+        matches.sort(key=lambda match: match["score"], reverse=True)
+        if len(matches) > 1 and matches[0]["score"] - matches[1]["score"] < 0.06:
+            continue
+        selected.append((start, end, matches[0]))
+
+    selected.sort(key=lambda item: item[2]["score"], reverse=True)
+    accepted = []
+    for candidate in selected:
+        start, end, _ = candidate
+        if any(start < other_end and end > other_start for other_start, other_end, _ in accepted):
+            continue
+        accepted.append(candidate)
+
+    corrected_question = question
+    corrections = []
+    for start, end, match in sorted(accepted, key=lambda item: item[0], reverse=True):
+        corrected_question = corrected_question[:start] + match["matched"] + corrected_question[end:]
+        corrections.append({
+            "original": match["original"],
+            "matched": match["matched"],
+            "type": match["type"],
+        })
+
+    return corrected_question, list(reversed(corrections))
 
 
 def get_inventory_reference(db: Session):

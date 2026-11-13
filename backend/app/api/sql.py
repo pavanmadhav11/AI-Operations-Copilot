@@ -9,6 +9,7 @@ from app.schemas.sql import SQLRequest
 from app.services.sql_service import (
     generate_sql,
     execute_sql,
+    correct_inventory_terms,
 )
 from app.services.stock_action_service import create_quantity_action
 
@@ -25,9 +26,10 @@ def sql(
     current_user=Depends(get_current_user),
 ):
     try:
+        corrected_question, corrections = correct_inventory_terms(request.question, db)
 
         sql_query = generate_sql(
-            question=request.question,
+            question=corrected_question,
             role=current_user.role,
             db=db,
         )
@@ -50,6 +52,7 @@ def sql(
             return {
                 "success": True,
                 "sql": sql_query,
+                "corrections": corrections,
                 "confirmation_required": True,
                 "result": preview,
             }
@@ -57,6 +60,7 @@ def sql(
         return {
             "success": True,
             "sql": sql_query,
+            "corrections": corrections,
             "result": result,
         }
 
