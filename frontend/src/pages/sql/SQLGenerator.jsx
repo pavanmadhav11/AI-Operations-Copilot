@@ -16,6 +16,8 @@ export default function SQLGenerator() {
 
   async function handleGenerate(question) {
     setLoading(true);
+    setSql("");
+    setRows([]);
     setPendingAction(null);
     try {
       const response = await generateSQL(question);
@@ -30,8 +32,8 @@ export default function SQLGenerator() {
           setRows(Array.isArray(response.result) ? response.result : []);
         }
       }
-    } catch {
-      toast.error("Something went wrong.");
+    } catch (error) {
+      toast.error(error.response?.data?.detail || error.response?.data?.message || "Something went wrong.");
     } finally {
       setLoading(false);
     }

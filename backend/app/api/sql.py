@@ -29,6 +29,7 @@ def sql(
         sql_query = generate_sql(
             question=request.question,
             role=current_user.role,
+            db=db,
         )
 
         result = execute_sql(
