@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { Activity, Database, FileSpreadsheet, FileText, MessageSquare, UsersRound } from "lucide-react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -64,25 +66,25 @@ export default function Analytics() {
         <Card
           title="Users"
           value={data.users}
-          icon="👥"
+          icon={UsersRound}
         />
 
         <Card
           title="Sessions"
           value={data.sessions}
-          icon="💬"
+          icon={MessageSquare}
         />
 
         <Card
           title="Documents"
           value={data.documents}
-          icon="📄"
+          icon={FileText}
         />
 
         <Card
           title="Storage"
           value={data.storage}
-          icon="💾"
+          icon={Database}
         />
 
       </div>
@@ -158,19 +160,19 @@ export default function Analytics() {
         <Card
           title="PDF Files"
           value={data.pdfs}
-          icon="📕"
+          icon={FileText}
         />
 
         <Card
           title="Excel Files"
           value={data.excels}
-          icon="📗"
+          icon={FileSpreadsheet}
         />
 
         <Card
           title="AI Requests"
           value={data.ai_requests}
-          icon="🤖"
+          icon={Activity}
         />
 
       </div>
@@ -179,34 +181,18 @@ export default function Analytics() {
   );
 }
 
-function Card({
-  title,
-  value,
-  icon,
-}) {
+function Card({ title, value, icon: Icon }) {
   return (
-    <div className="bg-white rounded-xl shadow p-6">
-
-      <div className="flex justify-between items-center">
-
+    <div className="rounded-lg border border-slate-200 bg-white p-5">
+      <div className="flex items-center justify-between gap-4">
         <div>
-
-          <p className="text-gray-500">
-            {title}
-          </p>
-
-          <h2 className="text-3xl font-bold mt-3">
-            {value}
-          </h2>
-
+          <p className="text-sm text-slate-500">{title}</p>
+          <h2 className="mt-2 text-2xl font-semibold text-slate-900">{value}</h2>
         </div>
-
-        <div className="text-4xl">
-          {icon}
+        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 text-slate-600">
+          <Icon size={19} strokeWidth={1.75} aria-hidden="true" />
         </div>
-
       </div>
-
     </div>
   );
 }

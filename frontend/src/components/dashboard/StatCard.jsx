@@ -1,14 +1,14 @@
 import {
   Users,
   FileText,
-  Bot,
+  Activity,
   Database,
 } from "lucide-react";
 
 const icons = {
   users: Users,
   documents: FileText,
-  ai: Bot,
+  ai: Activity,
   storage: Database,
 };
 

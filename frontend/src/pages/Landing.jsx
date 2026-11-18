@@ -9,13 +9,11 @@ export default function Landing() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-800 text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
 
       <div className="max-w-7xl mx-auto">
 
-        {/* Navbar */}
-
-        <header className="flex justify-between items-center p-8">
+        <header className="flex items-center justify-between border-b border-slate-200 px-8 py-5">
 
           <h1 className="text-3xl font-bold">
             AI Operations Copilot
@@ -41,9 +39,7 @@ export default function Landing() {
 
         </header>
 
-        {/* Hero */}
-
-        <section className="text-center py-24">
+        <section className="px-8 py-20 text-center">
 
           <h2 className="text-6xl font-extrabold leading-tight">
             AI Operations
@@ -51,7 +47,7 @@ export default function Landing() {
             Copilot
           </h2>
 
-          <p className="mt-8 text-xl text-gray-300 max-w-3xl mx-auto">
+          <p className="mx-auto mt-8 max-w-3xl text-xl text-slate-600">
             Manage business operations with AI-powered chat,
             SQL generation, PDF and Excel analysis,
             analytics dashboards and intelligent reporting.
@@ -68,7 +64,7 @@ export default function Landing() {
 
             <Link
               to="/login"
-              className="border border-white px-8 py-4 rounded-xl text-lg hover:bg-white hover:text-black transition"
+              className="rounded-lg border border-slate-300 px-8 py-4 text-lg text-slate-700 transition hover:bg-slate-900 hover:text-white"
             >
               Login
             </Link>
@@ -77,9 +73,7 @@ export default function Landing() {
 
         </section>
 
-        {/* Features */}
-
-        <section className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 px-8 pb-24">
+        <section className="grid gap-5 px-8 pb-20 md:grid-cols-2 lg:grid-cols-3">
 
           <Feature
             title="AI Chat"
@@ -121,13 +115,13 @@ export default function Landing() {
 
 function Feature({ title, description }) {
   return (
-    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/10">
+    <div className="rounded-lg border border-slate-200 bg-white p-6">
 
       <h3 className="text-2xl font-semibold mb-4">
         {title}
       </h3>
 
-      <p className="text-gray-300">
+      <p className="text-slate-600">
         {description}
       </p>
 

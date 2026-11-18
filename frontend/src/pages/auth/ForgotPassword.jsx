@@ -7,8 +7,6 @@ export default function ForgotPassword() {
     <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
       <div className="bg-white dark:bg-slate-800 shadow-xl rounded-xl p-10 w-[450px] text-center">
 
-        <div className="text-6xl mb-6">🚧</div>
-
         <h1 className="text-3xl font-bold mb-4 text-gray-800 dark:text-white">
           Coming Soon
         </h1>

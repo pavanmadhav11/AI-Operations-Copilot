@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import useAuthStore from "../../store/authStore";
-import { Bell } from "lucide-react";
+import { Bell, FileText, LogOut, Settings } from "lucide-react";
 import { getNotifications, markNotificationRead } from "../../services/notificationService";
 
 export default function Navbar() {
@@ -149,7 +149,7 @@ export default function Navbar() {
                 }}
                 className="w-full text-left px-5 py-3 hover:bg-gray-100 dark:hover:bg-slate-700"
               >
-                ⚙ Settings
+                <Settings size={16} className="mr-2 inline-block" aria-hidden="true" /> Settings
               </button>
 
               <button
@@ -159,7 +159,7 @@ export default function Navbar() {
                 }}
                 className="w-full text-left px-5 py-3 hover:bg-gray-100 dark:hover:bg-slate-700"
               >
-                📄 Reports
+                <FileText size={16} className="mr-2 inline-block" aria-hidden="true" /> Reports
               </button>
 
               <hr />
@@ -168,7 +168,7 @@ export default function Navbar() {
                 onClick={handleLogout}
                 className="w-full text-left px-5 py-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
               >
-                🚪 Logout
+                <LogOut size={16} className="mr-2 inline-block" aria-hidden="true" /> Logout
               </button>
 
             </div>

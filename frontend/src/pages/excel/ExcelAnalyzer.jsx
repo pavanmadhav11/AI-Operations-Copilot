@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { FileSpreadsheet } from "lucide-react";
 import useAuthStore from "../../store/authStore";
 import {
   uploadExcel,
@@ -194,7 +195,7 @@ export default function ExcelAnalyzer() {
                   : "border-gray-200"
               }`}
             >
-              📊 {file.filename}
+              <span className="flex items-center gap-2"><FileSpreadsheet size={16} className="shrink-0 text-slate-500" strokeWidth={1.7} aria-hidden="true" /><span className="truncate">{file.filename}</span></span>
             </div>
           ))}
 

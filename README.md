@@ -20,21 +20,23 @@ New registrations always receive the employee role. After registering and confir
 
 An admin can open **User Roles** to give accounts the employee, manager, or admin role. The system does not allow the last admin account to be demoted.
 
-## Local presentation dataset
+## Monthly business dataset
 
-After the database is running, create a presentation dataset with `docker compose exec backend python -m app.seed_demo_data --confirm-presentation-data`. It creates two warehouses, six low-stock alerts, transfers, expiring and expired lots, a pending stock action, recommendation feedback, a supplier quote and draft, chat sessions with source documents, and a sales workbook with validation examples. Generated PDF and Excel files are saved under `backend/business_data/`.
+After the database is running, add the Andhra Pradesh inventory dataset with `docker compose exec backend python -m app.seed_business_data --confirm-business-data`. It covers the latest 30 days and includes 18 products, four stores, stock movement history, expiry batches, conversations, daily receipt PDFs, a monthly sales workbook, supplier quotations, purchase drafts, recommendations, and a pending manager action. Generated files are saved under `backend/business_data/`.
 
-Set a private presentation password before creating the accounts:
+Set a private presentation password before creating any missing role accounts:
 
 `$env:PRESENTATION_PASSWORD="use-a-private-password-of-at-least-12-characters"`
 
+New role accounts use these addresses when the database does not already have a user for that role:
+
 | Role | Email |
 | --- | --- |
-| Admin | `alex.morgan@northstar.example` |
-| Manager | `priya.shah@northstar.example` |
-| Employee | `jordan.lee@northstar.example` |
+| Admin | `ananya.reddy@godavarifresh.example` |
+| Manager | `sai.kiran@godavarifresh.example` |
+| Employee | `lakshmi.prasanna@godavarifresh.example` |
 
-This seeder creates fictional business records for a presentation database. It refuses to run if a presentation account already exists. The sample sales workbook calculates 34 Arabica Coffee units and 20 Oat Milk units over seven days.
+Existing users and stock quantities are retained. Known earlier Northstar records are renamed to the Andhra Pradesh business names. The seeder can be run once; repeat runs recognize the monthly dataset and leave it unchanged.
 
 ## Stock features
 
@@ -56,7 +58,7 @@ The recommendations use simple inventory rules and entered sales history; they a
 
 ## Project evaluation idea
 
-Prepare a small sample dataset with two warehouses and known stock levels. Time how long it takes a user to identify a shortage manually and with the dashboard. Check whether the suggested transfer quantity respects source stock, whether a confirmed action updates the correct rows, and whether an Employee is blocked from confirming a change. Record the results instead of claiming time savings without measurements.
+Use the Andhra Pradesh monthly business dataset with its four stores and dated stock history. Time how long it takes a user to identify a shortage manually and with the dashboard. Check whether the suggested transfer quantity respects source stock, whether a confirmed action updates the correct rows, and whether an Employee is blocked from confirming a change. Record the results instead of claiming time savings without measurements.
 
 ## Main technologies
 
@@ -74,4 +76,4 @@ Run `docker compose up --build` from the project folder. The frontend is served 
 
 ## Render deployment
 
-The `render.yaml` file creates a web service, static frontend, and private PostgreSQL database. Connect this repository in Render and deploy the Blueprint. Enter `GROQ_API_KEY` when Render prompts for it. The free PostgreSQL instance is suitable for a short presentation deployment, but free database storage expires after Render's free-plan retention period and should not be used for important records. Uploaded files on a free web service can be lost when the service restarts, so use the seeded sample documents for the presentation.
+The `render.yaml` file creates a web service, static frontend, and private PostgreSQL database. Connect this repository in Render and deploy the Blueprint. Enter `GROQ_API_KEY` when Render prompts for it. The free PostgreSQL instance is suitable for a short presentation deployment, but free database storage expires after Render's free-plan retention period and should not be used for important records. Uploaded files on a free web service can be lost when the service restarts, so use the generated supplier, operations, and goods receipt documents for the presentation.

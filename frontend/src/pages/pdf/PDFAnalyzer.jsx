@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { FileText } from "lucide-react";
 
 import {
   uploadPDF,
@@ -140,7 +141,7 @@ export default function PDFAnalyzer() {
 
           {pdfs.length === 0 && (
             <div className="text-center py-10 text-gray-500">
-              <p className="text-5xl mb-4">📄</p>
+              <FileText className="mx-auto mb-4 text-slate-400" size={34} strokeWidth={1.6} aria-hidden="true" />
               <p>No PDFs uploaded yet.</p>
               <p className="text-sm mt-2">
                 Upload a PDF to generate an AI summary.
@@ -159,8 +160,9 @@ export default function PDFAnalyzer() {
               }`}
             >
               <div>
-                <p className="font-semibold truncate">
-                  📄 {pdf.filename}
+                <p className="flex items-center gap-2 truncate font-semibold">
+                  <FileText className="shrink-0 text-slate-500" size={16} strokeWidth={1.7} aria-hidden="true" />
+                  <span className="truncate">{pdf.filename}</span>
                 </p>
 
                 <p className="text-xs text-gray-500">
