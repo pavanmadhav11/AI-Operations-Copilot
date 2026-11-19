@@ -1,7 +1,7 @@
 import re
 from difflib import SequenceMatcher
 
-from sqlalchemy import text
+from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
 from app.ai.llm import ask_llm
@@ -11,6 +11,23 @@ from app.models.product import Product
 from app.models.warehouse import Warehouse
 from app.services.sql_validator import validate_sql
 from app.utils.sql_utils import clean_sql
+
+
+def top_demand_query(question: str):
+    normalized = question.casefold()
+    is_top_demand = re.search(
+        r"\b(?:top\b.{0,40}\b(?:sell(?:ing)?|sold|sales|popular|demand)|best[\s-]*selling|most\b.{0,40}\b(?:sold|popular|demand))\b",
+        normalized,
+    )
+    if not is_top_demand:
+        return None
+    requested_limit = re.search(r"\btop\s+(\d{1,3})\b", normalized)
+    limit = max(1, min(int(requested_limit.group(1)), 100)) if requested_limit else 5
+    return (
+        "SELECT product_id, SUM(average_daily_demand) AS average_daily_demand "
+        "FROM inventory GROUP BY product_id "
+        f"ORDER BY average_daily_demand DESC LIMIT {limit}"
+    )
 
 
 def correct_inventory_terms(question: str, db: Session):
@@ -124,6 +141,10 @@ def generate_sql(
     role: str,
     db: Session,
 ):
+    demand_query = top_demand_query(question)
+    if demand_query:
+        validate_sql(demand_query, role)
+        return demand_query
 
     messages = [
         {
@@ -136,7 +157,7 @@ def generate_sql(
         },
         {
             "role": "system",
-            "content": "Inventory columns: id, warehouse_id, product_id, quantity, reorder_level.",
+            "content": "Inventory columns: id, warehouse_id, product_id, quantity, reorder_level, average_daily_demand.",
         },
         {
             "role": "system",
@@ -172,6 +193,29 @@ def execute_sql(
 
     if query["operation"] == "update":
         return query
+
+    if query["operation"] == "top_demand":
+        results = (
+            db.query(
+                Product.id.label("product_id"),
+                Product.name.label("product_name"),
+                func.sum(Inventory.average_daily_demand).label("average_daily_demand"),
+            )
+            .join(Inventory, Inventory.product_id == Product.id)
+            .group_by(Product.id, Product.name)
+            .having(func.sum(Inventory.average_daily_demand) > 0)
+            .order_by(func.sum(Inventory.average_daily_demand).desc(), Product.name.asc())
+            .limit(query["limit"])
+            .all()
+        )
+        return [
+            {
+                "product_id": row.product_id,
+                "product_name": row.product_name,
+                "average_daily_demand": round(float(row.average_daily_demand), 2),
+            }
+            for row in results
+        ]
 
     result = db.execute(text(query["sql"]))
     rows = [dict(row) for row in result.mappings().all()]
