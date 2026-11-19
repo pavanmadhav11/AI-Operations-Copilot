@@ -64,9 +64,9 @@ export default function SQLGenerator() {
 
   return (
     <div className="p-8">
-      <h1 className="mb-2 text-3xl font-bold">Stock Assistant</h1>
+      <h1 className="mb-2 text-3xl font-bold">Operations SQL Generator</h1>
       <p className="mb-6 text-slate-600">
-        Ask inventory questions in plain language. Managers and admins can prepare stock changes for review; employees can look up stock.
+        Ask inventory and sales questions in plain language. Managers and admins can prepare stock changes for review; employees can analyze sales and look up stock.
       </p>
       <SQLInput onGenerate={handleGenerate} loading={loading} />
       {corrections.length > 0 && (
@@ -85,8 +85,8 @@ export default function SQLGenerator() {
       <SQLTable rows={rows} />
       {sql && rows.length === 0 && !pendingAction && (
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-          <h2 className="font-semibold text-slate-900">No matching inventory found</h2>
-          <p className="mt-1 text-sm text-slate-500">Try a different product name or adjust your stock filters.</p>
+          <h2 className="font-semibold text-slate-900">No matching records found</h2>
+          <p className="mt-1 text-sm text-slate-500">Try a different sales question, product name, or stock filter.</p>
         </div>
       )}
       {pendingAction && canChangeStock && (

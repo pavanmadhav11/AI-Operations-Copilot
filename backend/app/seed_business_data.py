@@ -20,6 +20,7 @@ from app.models.inventory import Inventory
 from app.models.product import Product
 from app.models.purchase_order import PurchaseOrder
 from app.models.recommendation_outcome import RecommendationOutcome
+from app.models.sales_record import SalesRecord
 from app.models.stock_action import StockAction
 from app.models.stock_batch import StockBatch
 from app.models.stock_movement import StockMovement
@@ -567,6 +568,23 @@ def add_action_history(db, manager, inventory_rows, today):
     db.add(cancelled)
 
 
+def ensure_seeded_sales_records(db):
+    monthly_sales_file = db.query(UploadedFile).filter(
+        UploadedFile.filename == "Godavari_Fresh_Monthly_Sales.xlsx",
+        UploadedFile.session_id.is_(None),
+    ).order_by(UploadedFile.id.desc()).first()
+    if monthly_sales_file is None:
+        return
+    existing_records = db.query(SalesRecord.id).filter(
+        SalesRecord.source_file_id == monthly_sales_file.id
+    ).first()
+    if existing_records:
+        return
+    from app.services.excel_analyzer_service import apply_sales_demand
+
+    apply_sales_demand(db, monthly_sales_file.user_id, monthly_sales_file.id)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--confirm-business-data", "--confirm-presentation-data", action="store_true", required=True)
@@ -582,6 +600,7 @@ def main(argv=None):
         marker_session = db.query(ChatSession).filter(ChatSession.title == "Monthly Store Stock Review").first()
         if marker_product and marker_warehouse and marker_session:
             restore_business_files(db)
+            ensure_seeded_sales_records(db)
             print("The Andhra Pradesh monthly inventory data is already in the database.")
             return
 
@@ -842,6 +861,7 @@ def main(argv=None):
             utc_stamp(quote_day, 11),
         )
 
+        ensure_seeded_sales_records(db)
         db.commit()
         print("Andhra Pradesh monthly inventory data has been added.")
         print(f"Date range: {today - timedelta(days=29)} through {today}")

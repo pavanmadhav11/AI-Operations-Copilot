@@ -51,6 +51,7 @@ Existing users and stock quantities are retained. Known earlier Northstar record
 - The transfer suggestion checks for stock above the reorder threshold at another warehouse. If available surplus is not enough, it suggests transferring what it can and ordering the remainder.
 - Chat answers based on uploaded PDFs cite a source page; answers based on spreadsheets cite a sheet.
 - Excel uploads show common data checks. Managers and admins can use a workbook as sales history when it has product, quantity, and date columns. The app calculates average units sold per day across the date range and updates demand estimates for matching products.
+- Applying a sales workbook also imports dated sales records. The SQL Generator can rank products by units sold, calculate total units sold for a selected period, and show a daily sales trend.
 - Managers and admins can extract supplier details from a PDF quote, correct the extracted fields, and save an editable purchase order draft. The draft is not sent to the supplier.
 - The notification bell collects active low-stock, expiry, pending-action, and purchase-draft alerts. Recommendation outcome cards report feedback, transfer/reorder acceptance, purchase drafts, and expired units written off.
 

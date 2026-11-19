@@ -13,6 +13,7 @@ from app.models.purchase_order import PurchaseOrder
 from app.models.notification import Notification
 from app.models.recommendation_outcome import RecommendationOutcome
 from app.models.uploaded_file import UploadedFile
+from app.models.sales_record import SalesRecord
 from sqlalchemy import text
 
 def init_db():

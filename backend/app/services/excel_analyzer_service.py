@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.models.inventory import Inventory
 from app.models.product import Product
+from app.models.sales_record import SalesRecord
 from app.models.uploaded_file import UploadedFile
 
 from app.services.excel_service import extract_excel_text
@@ -100,6 +101,7 @@ def delete_excel(
     if not excel:
         return False
 
+    db.query(SalesRecord).filter(SalesRecord.source_file_id == excel.id).delete(synchronize_session=False)
     remove_upload(excel.file_path, UPLOAD_DIR)
 
     db.delete(excel)
@@ -138,20 +140,34 @@ def apply_sales_demand(db: Session, user_id: int, file_id: int):
 
     sales = pd.concat(sales_frames, ignore_index=True)
     sales["product_name"] = sales["product_name"].fillna("").astype(str).str.strip()
+    sales["product_key"] = sales["product_name"].str.casefold()
     sales["quantity"] = pd.to_numeric(sales["quantity"], errors="coerce")
     sales["date"] = pd.to_datetime(sales["date"], errors="coerce").dt.date
     if sales["product_name"].eq("").any() or sales["quantity"].isna().any() or sales["date"].isna().any() or (sales["quantity"] < 0).any():
         raise HTTPException(status_code=400, detail="Sales data contains invalid dates or negative/non-numeric quantities.")
 
+    sales_by_day = sales.groupby(["product_key", "date"], as_index=False)["quantity"].sum()
+    prepared_records = []
     results = []
     unmatched = []
-    for product_name, rows in sales.groupby("product_name"):
-        product = db.query(Product).filter(func.lower(Product.name) == product_name.lower()).first()
+    for product_key, rows in sales.groupby("product_key"):
+        product_name = rows["product_name"].iloc[0]
+        product = db.query(Product).filter(func.lower(Product.name) == product_key).first()
         if product is None:
             unmatched.append(product_name)
             continue
         day_count = max(1, (rows["date"].max() - rows["date"].min()).days + 1)
         average = round(float(rows["quantity"].sum()) / day_count, 2)
+        product_sales = sales_by_day[sales_by_day["product_key"] == product_key]
+        prepared_records.extend(
+            SalesRecord(
+                product_id=product.id,
+                source_file_id=uploaded.id,
+                sale_date=sale_date,
+                units_sold=float(quantity),
+            )
+            for sale_date, quantity in product_sales[["date", "quantity"]].itertuples(index=False, name=None)
+        )
         db.query(Inventory).filter(Inventory.product_id == product.id).update(
             {Inventory.average_daily_demand: average},
             synchronize_session=False,
@@ -163,5 +179,13 @@ def apply_sales_demand(db: Session, user_id: int, file_id: int):
             "average_daily_demand": average,
         })
 
+    if prepared_records:
+        db.query(SalesRecord).filter(SalesRecord.source_file_id == uploaded.id).delete(synchronize_session=False)
+        db.add_all(prepared_records)
+
     db.commit()
-    return {"updated": results, "unmatched_products": unmatched}
+    return {
+        "updated": results,
+        "unmatched_products": unmatched,
+        "sales_records_imported": len(prepared_records),
+    }

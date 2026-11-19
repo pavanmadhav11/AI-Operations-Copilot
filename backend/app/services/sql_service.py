@@ -1,7 +1,8 @@
 import re
+from datetime import date, timedelta
 from difflib import SequenceMatcher
 
-from sqlalchemy import func, text
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.ai.llm import ask_llm
@@ -13,21 +14,56 @@ from app.services.sql_validator import validate_sql
 from app.utils.sql_utils import clean_sql
 
 
-def top_demand_query(question: str):
+def sales_analytics_query(question: str):
     normalized = question.casefold()
-    is_top_demand = re.search(
-        r"\b(?:top\b.{0,40}\b(?:sell(?:ing)?|sold|sales|popular|demand)|best[\s-]*selling|most\b.{0,40}\b(?:sold|popular|demand))\b",
-        normalized,
-    )
-    if not is_top_demand:
+    sales_request = re.search(r"\b(sales?|sold|selling|sellers?|units sold)\b", normalized)
+    if not sales_request:
         return None
+
+    start_date = None
+    end_date = None
+    day_period = re.search(r"\b(?:last|past)\s+(\d{1,3})\s+days?\b", normalized)
+    if day_period:
+        days = max(1, min(int(day_period.group(1)), 3650))
+        start_date = date.today() - timedelta(days=days - 1)
+    elif re.search(r"\b(?:last|past)\s+week\b", normalized):
+        start_date = date.today() - timedelta(days=6)
+    elif "this month" in normalized:
+        start_date = date.today().replace(day=1)
+    elif "last month" in normalized:
+        end_date = date.today().replace(day=1)
+        first_of_month = end_date
+        start_date = (first_of_month - timedelta(days=1)).replace(day=1)
+
+    date_filter = ""
+    if start_date:
+        date_filter = f" WHERE sale_date >= '{start_date.isoformat()}'"
+        if end_date:
+            date_filter += f" AND sale_date < '{end_date.isoformat()}'"
     requested_limit = re.search(r"\btop\s+(\d{1,3})\b", normalized)
     limit = max(1, min(int(requested_limit.group(1)), 100)) if requested_limit else 5
-    return (
-        "SELECT product_id, SUM(average_daily_demand) AS average_daily_demand "
-        "FROM inventory GROUP BY product_id "
-        f"ORDER BY average_daily_demand DESC LIMIT {limit}"
-    )
+    top_request = re.search(
+        r"\b(?:top\b.{0,40}\b(?:sell(?:ing)?|sellers?|sold|sales|popular)|best[\s-]*(?:selling|sellers?)|most\b.{0,40}\b(?:sold|popular))\b",
+        normalized,
+    ) or "by product" in normalized or "per product" in normalized
+    trend_request = re.search(r"\b(?:trend|daily|by day|over time)\b", normalized)
+
+    if top_request:
+        return (
+            "SELECT product_id, SUM(units_sold) AS total_units_sold "
+            f"FROM sales_records{date_filter} GROUP BY product_id "
+            f"ORDER BY total_units_sold DESC LIMIT {limit}"
+        )
+    if trend_request:
+        if not start_date:
+            start_date = date.today() - timedelta(days=29)
+            date_filter = f" WHERE sale_date >= '{start_date.isoformat()}'"
+        return (
+            "SELECT sale_date, SUM(units_sold) AS total_units_sold "
+            f"FROM sales_records{date_filter} GROUP BY sale_date "
+            "ORDER BY sale_date ASC LIMIT 100"
+        )
+    return f"SELECT SUM(units_sold) AS total_units_sold FROM sales_records{date_filter}"
 
 
 def correct_inventory_terms(question: str, db: Session):
@@ -141,10 +177,10 @@ def generate_sql(
     role: str,
     db: Session,
 ):
-    demand_query = top_demand_query(question)
-    if demand_query:
-        validate_sql(demand_query, role)
-        return demand_query
+    sales_query = sales_analytics_query(question)
+    if sales_query:
+        validate_sql(sales_query, role)
+        return sales_query
 
     messages = [
         {
@@ -194,31 +230,21 @@ def execute_sql(
     if query["operation"] == "update":
         return query
 
-    if query["operation"] == "top_demand":
-        results = (
-            db.query(
-                Product.id.label("product_id"),
-                Product.name.label("product_name"),
-                func.sum(Inventory.average_daily_demand).label("average_daily_demand"),
-            )
-            .join(Inventory, Inventory.product_id == Product.id)
-            .group_by(Product.id, Product.name)
-            .having(func.sum(Inventory.average_daily_demand) > 0)
-            .order_by(func.sum(Inventory.average_daily_demand).desc(), Product.name.asc())
-            .limit(query["limit"])
-            .all()
-        )
-        return [
-            {
-                "product_id": row.product_id,
-                "product_name": row.product_name,
-                "average_daily_demand": round(float(row.average_daily_demand), 2),
-            }
-            for row in results
-        ]
-
     result = db.execute(text(query["sql"]))
     rows = [dict(row) for row in result.mappings().all()]
+    if query["operation"] == "sales_analytics":
+        product_ids = [row["product_id"] for row in rows if "product_id" in row]
+        if product_ids:
+            products = db.query(Product.id, Product.name).filter(Product.id.in_(product_ids)).all()
+            names = {product.id: product.name for product in products}
+            for row in rows:
+                if "product_id" in row:
+                    row["product_name"] = names.get(row["product_id"], "Unknown product")
+        for row in rows:
+            if "total_units_sold" in row and row["total_units_sold"] is None:
+                row["total_units_sold"] = 0
+        return rows
+
     inventory_ids = [row["id"] for row in rows if "id" in row]
     if not inventory_ids:
         return rows

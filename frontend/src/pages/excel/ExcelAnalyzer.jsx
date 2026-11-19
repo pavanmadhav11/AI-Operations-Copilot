@@ -67,7 +67,7 @@ export default function ExcelAnalyzer() {
     try {
       const result = await applySalesDemand(selected.id);
       setSalesResult(result);
-      toast.success("Sales history applied to demand estimates.");
+      toast.success("Sales records imported and demand estimates updated.");
     } catch (err) {
       toast.error(err.response?.data?.detail || "Could not apply this workbook as sales history.");
     } finally {
@@ -237,7 +237,8 @@ export default function ExcelAnalyzer() {
 
               {salesResult && (
                 <div className="bg-white rounded-xl shadow p-6">
-                  <h2 className="mb-3 text-xl font-semibold">Demand estimates from sales</h2>
+                  <h2 className="mb-3 text-xl font-semibold">Sales history imported</h2>
+                  <p className="mb-3 text-sm text-slate-600">{salesResult.sales_records_imported} dated sales records are available to the SQL Generator.</p>
                   {salesResult.updated.map((item) => <p className="mb-2" key={item.product_name}>{item.product_name}: {item.total_units_sold} units over {item.days_in_period} days · {item.average_daily_demand} units/day</p>)}
                   {salesResult.unmatched_products.length > 0 && <p className="mt-3 text-amber-700">Not found in inventory: {salesResult.unmatched_products.join(", ")}</p>}
                 </div>

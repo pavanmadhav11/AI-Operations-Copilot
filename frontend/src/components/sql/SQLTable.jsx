@@ -6,6 +6,7 @@ export default function SQLTable({ rows }) {
   const columnLabels = {
     id: "Inventory ID",
     product_id: "Product ID",
+    product_name: "Product",
     warehouse_id: "Warehouse ID",
     product_name: "Item",
     warehouse_name: "Warehouse",
@@ -13,13 +14,15 @@ export default function SQLTable({ rows }) {
     reorder_level: "Reorder level",
     average_daily_demand: "Daily demand",
     supplier_lead_time_days: "Supplier lead time (days)",
+    total_units_sold: "Units sold",
+    sale_date: "Sales date",
   };
 
   return (
     <section className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
         <div>
-          <h2 className="font-semibold text-slate-900">Inventory results</h2>
+          <h2 className="font-semibold text-slate-900">Query results</h2>
           <p className="mt-1 text-sm text-slate-500">{rows.length} {rows.length === 1 ? "record" : "records"} found</p>
         </div>
       </div>
