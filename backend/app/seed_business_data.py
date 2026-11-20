@@ -34,8 +34,12 @@ DATA_DIR = Path("business_data")
 PASSWORD_ENV = "PRESENTATION_PASSWORD"
 BUSINESS_USERS = {
     "admin": ("ananya.reddy@godavarifresh.example", "Ananya Reddy"),
-    "manager": ("sai.kiran@godavarifresh.example", "Sai Kiran Varma"),
-    "employee": ("lakshmi.prasanna@godavarifresh.example", "Lakshmi Prasanna"),
+    "manager": ("abhiram_manager@gmail.com", "Abhiram Manager"),
+    "employee": ("jeevan_employee@gmail.com", "Jeevan Employee"),
+}
+BUSINESS_PASSWORD_ENVS = {
+    "manager": "PRESENTATION_MANAGER_PASSWORD",
+    "employee": "PRESENTATION_EMPLOYEE_PASSWORD",
 }
 WAREHOUSE_ROWS = [
     ("Visakhapatnam Central Store", "Visakhapatnam"),
@@ -351,6 +355,43 @@ def create_roles(db, password):
     return users
 
 
+def ensure_business_accounts(db, users=None):
+    accounts = {}
+    for role in ("manager", "employee"):
+        account_password = os.environ.get(BUSINESS_PASSWORD_ENVS[role])
+        if not account_password:
+            continue
+        email, name = BUSINESS_USERS[role]
+        user = db.query(User).filter(func.lower(User.email) == email.lower()).first()
+        if user is not None and user.role == "admin":
+            raise SystemExit(f"The requested {role} email is already assigned to an admin account.")
+        if user is None:
+            user = db.query(User).filter(User.role == role).order_by(User.id.asc()).first()
+        if user is None and users is not None:
+            user = users.get(role)
+        if user is None:
+            user = User(
+                name=name,
+                email=email,
+                hashed_password=hash_password(account_password),
+                role=role,
+            )
+            db.add(user)
+            db.flush()
+        previous_name = user.name
+        user.name = name
+        user.email = email
+        user.hashed_password = hash_password(account_password)
+        user.role = role
+        db.flush()
+        if role == "manager":
+            db.query(Warehouse).filter(
+                Warehouse.manager.in_([previous_name, "Sai Kiran Varma", "Priya Shah"])
+            ).update({Warehouse.manager: name}, synchronize_session=False)
+        accounts[role] = user
+    return accounts
+
+
 def create_inventory(db, products, warehouses):
     rows = []
     for product_index, (name, _, _) in enumerate(PRODUCT_ROWS):
@@ -600,12 +641,15 @@ def main(argv=None):
         marker_session = db.query(ChatSession).filter(ChatSession.title == "Monthly Store Stock Review").first()
         if marker_product and marker_warehouse and marker_session:
             restore_business_files(db)
+            ensure_business_accounts(db)
             ensure_seeded_sales_records(db)
+            db.commit()
             print("The Andhra Pradesh monthly inventory data is already in the database.")
             return
 
         normalize_legacy_names(db)
         users = create_roles(db, password)
+        users.update(ensure_business_accounts(db, users))
 
         warehouses = []
         for name, city in WAREHOUSE_ROWS:

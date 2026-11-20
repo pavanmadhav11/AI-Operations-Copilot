@@ -24,19 +24,27 @@ An admin can open **User Roles** to give accounts the employee, manager, or admi
 
 After the database is running, add the Andhra Pradesh inventory dataset with `docker compose exec backend python -m app.seed_business_data --confirm-business-data`. It covers the latest 30 days and includes 18 products, four stores, stock movement history, expiry batches, conversations, daily receipt PDFs, a monthly sales workbook, supplier quotations, purchase drafts, recommendations, and a pending manager action. Generated files are saved under `backend/business_data/`.
 
-Set a private presentation password before creating any missing role accounts:
+Set these private Render environment variables before creating or updating role accounts. The manager and employee password values should be the credentials provided for the presentation. Keep their values out of source control.
+
+```text
+PRESENTATION_PASSWORD
+PRESENTATION_MANAGER_PASSWORD
+PRESENTATION_EMPLOYEE_PASSWORD
+```
+
+`PRESENTATION_PASSWORD` is used only if the database needs a new administrator account. The other two variables update the manager and employee accounts during startup. The existing administrator account is preserved.
 
 `$env:PRESENTATION_PASSWORD="use-a-private-password-of-at-least-12-characters"`
 
-New role accounts use these addresses when the database does not already have a user for that role:
+The seeder preserves the existing administrator account and sets the manager and employee accounts to these addresses:
 
 | Role | Email |
 | --- | --- |
-| Admin | `ananya.reddy@godavarifresh.example` |
-| Manager | `sai.kiran@godavarifresh.example` |
-| Employee | `lakshmi.prasanna@godavarifresh.example` |
+| Admin | Existing administrator account |
+| Manager | `abhiram_manager@gmail.com` |
+| Employee | `jeevan_employee@gmail.com` |
 
-Existing users and stock quantities are retained. Known earlier Northstar records are renamed to the Andhra Pradesh business names. The seeder can be run once; repeat runs recognize the monthly dataset and leave it unchanged.
+Existing user history and stock quantities are retained. Known earlier Northstar records are renamed to the Andhra Pradesh business names. Repeat runs do not duplicate the monthly dataset and keep the manager and employee login accounts set to the addresses above.
 
 ## Stock features
 

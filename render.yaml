@@ -35,6 +35,10 @@ services:
           property: connectionString
       - key: PRESENTATION_PASSWORD
         sync: false
+      - key: PRESENTATION_MANAGER_PASSWORD
+        sync: false
+      - key: PRESENTATION_EMPLOYEE_PASSWORD
+        sync: false
       - key: GROQ_MODEL
         value: openai/gpt-oss-120b
       - key: CORS_ORIGINS
